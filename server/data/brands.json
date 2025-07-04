@@ -1,0 +1,83 @@
+{
+  "gfuel.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "gfuelcom",
+      "brandData": {
+        "store_name": "G FUEL®",
+        "customHeroImage": true,
+        "store_url": "https://gfuel.com",
+        "logo_url": "https://media.brand.dev/38fd6f74-2e2d-4041-9207-dee02ed6e95b.png",
+        "banner_url": "https://media.brand.dev/47e1e144-609c-4826-96d7-34a36e06879e.png",
+        "backdrops": [
+          {
+            "url": "https://media.brand.dev/47e1e144-609c-4826-96d7-34a36e06879e.png",
+            "colors": [
+              "Megaman",
+              "Eine kleine Nachtmusik",
+              "Foggy Love"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/5ca87058-fb56-490e-b18d-013a42613d03.png",
+            "colors": [
+              "Megaman",
+              "Galactic Purple",
+              "Light Vision"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/8c8b2558-f2d7-4f5d-a5d0-d7f39b093e1a.jpg",
+            "colors": [
+              "Hot Hibiscus",
+              "Mulled Spice",
+              "Melanzane"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/fa8e59a5-2143-4e1c-9818-4a3c37b0ca09.jpg",
+            "colors": [
+              "Timeless Beauty",
+              "City Sunrise",
+              "Melanzane"
+            ],
+            "desc": "brand backdrop"
+          }
+        ],
+        "fonts": {
+          "title": "Blunt Wide",
+          "body": "Acumin VF",
+          "button": "Acumin VF"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "facebook": "https://facebook.com/gfuelenergy",
+          "instagram": "https://instagram.com/gfuelenergy",
+          "linkedin": "https://linkedin.com/company/gamma-labs",
+          "x": "https://x.com/gfuelenergy",
+          "youtube": "https://youtube.com/c/gfuelenergy/featured"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#3cbaf2",
+        "body_color": "#ffffff",
+        "link_color": "#4622a4",
+        "text_color": "#141414",
+        "primary_color": "#3cbaf2",
+        "button_color": "#3cbaf2",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#4622a4",
+        "description": "G FUEL is a company that produces a range of supplements including energy drinks, hydration, and protein blends. Their products are designed to fuel active lifestyles, particularly among gamers and creators, with a focus on zero sugar and diverse flavors. As the Official Energy Drink of Esports, G FUEL aims to power high-performance missions and has gained a following among enthusiasts and collectors.",
+        "slogan": "Fuel Your World",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-07-04T05:35:23.083Z"
+  }
+}
