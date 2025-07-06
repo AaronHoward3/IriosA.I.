@@ -18,30 +18,45 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleContinue = async () => {
-    if (!domain.trim()) return;
+  if (!domain.trim()) return;
+  setIsLoading(true);
 
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call to /api/brand-info
-      // In real implementation, replace with actual API call
-      const response = await fetch(`/api/brand-info?domain=${encodeURIComponent(domain)}`);
-      const brandData = await response.json();
-      
-      updateFormData({ 
-        domain: domain.trim(), 
-        brandData 
-      });
-      onNext();
-    } catch (error) {
-      console.error('Failed to fetch brand info:', error);
-      // Continue anyway for demo purposes
-      updateFormData({ domain: domain.trim() });
-      onNext();
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  try {
+    // 1️⃣ brand check
+    const brandRes = await fetch(`/api/brand/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: domain.trim() }),
+    });
+    if (!brandRes.ok) throw new Error('Failed to fetch brand');
+    const brandData = await brandRes.json();
+
+    // 2️⃣ product scrape
+    const productRes = await fetch(`/api/products/scrape`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: domain.trim() }),
+    });
+    if (!productRes.ok) throw new Error('Failed to fetch products');
+    const productSuggestions = await productRes.json();
+
+    // 3️⃣ store in your formData
+    updateFormData({
+      domain: domain.trim(),
+      brandData,
+      products: productSuggestions.products,
+    });
+
+    onNext();
+  } catch (error) {
+    console.error('Failed to fetch brand info:', error);
+    // fallback if brand fails
+    updateFormData({ domain: domain.trim() });
+    onNext();
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="text-center space-y-8">

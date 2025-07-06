@@ -6,6 +6,8 @@ import generateRoutes from "./routes/generateRoutes.js";
 
 import dotenv from "dotenv";
 dotenv.config();
+console.log("dotenv loaded keys:", Object.keys(process.env));
+console.log("BRANDDEV_API_KEY:", process.env.BRANDDEV_API_KEY);
 
 const app = express();
 const PORT = process.env.PORT || 3001;

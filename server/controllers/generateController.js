@@ -1,5 +1,6 @@
 import { getStoredBrand } from "../utils/dataStore.js";
 import fetch from "node-fetch";
+import mjml2html from "mjml";
 
 export async function generateEmails(req, res) {
   const {
@@ -16,47 +17,56 @@ export async function generateEmails(req, res) {
   }
 
   try {
-    // get stored brand
+    // look up stored brand JSON
     const existing = await getStoredBrand(domain);
     if (!existing) {
       return res.status(404).json({ error: "Brand info not found" });
     }
 
-    // the stored brand JSON is already in generator shape:
+    // clone the brand baseline
     const brandJson = structuredClone(existing.brand);
 
-    // inject user options
+    // inject user inputs
     brandJson.emailType = emailType || "";
     brandJson.userContext = userContext || "";
     brandJson.tone = tone || "";
-    brandJson.brandData.customHeroImage = customHeroImage || false;
+    brandJson.brandData.customHeroImage = customHeroImage ?? true;
+    brandJson.brandData.products = products ?? [];
 
-    // inject products:
-    // only if the user chose to keep them
-    if (products && products.length > 0) {
-      brandJson.brandData.products = products;
-    } else {
-      brandJson.brandData.products = [];
-    }
-
-    // debug what we're sending
+    // log the final JSON we send
     console.log("---- FINAL JSON TO GENERATOR ----");
     console.log(JSON.stringify(brandJson, null, 2));
 
-    // forward to generator
+    // forward to the generator server
     const generatorResponse = await fetch(process.env.GENERATOR_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(brandJson)
+      body: JSON.stringify(brandJson),
     });
 
     if (!generatorResponse.ok) {
       console.log("Generator server error code:", generatorResponse.status);
-      return res.status(500).json({ error: "Email generator failed" });
+      return res
+        .status(500)
+        .json({ error: "Email generator failed", status: generatorResponse.status });
     }
 
-    const generatedEmails = await generatorResponse.json();
-    res.json(generatedEmails);
+    const generated = await generatorResponse.json();
+
+    // convert each MJML to HTML for preview
+    const htmlEmails = generated.emails.map((email) => {
+      const html = mjml2html(email.content);
+      return {
+        ...email,
+        html: html.html
+      };
+    });
+
+    res.json({
+      success: true,
+      totalTokens: generated.totalTokens,
+      emails: htmlEmails
+    });
 
   } catch (err) {
     console.error("Generate error:", err.message);

@@ -14,22 +14,22 @@ interface Step2EmailTypeProps {
 
 const emailTypes: { type: EmailType; label: string; description: string }[] = [
   {
-    type: 'promotional',
+    type: 'Promotion',
     label: 'Promotional',
     description: 'Sales and special offers'
   },
   {
-    type: 'newsletter',
+    type: 'Newsletter',
     label: 'Newsletter',
     description: 'Regular updates and news'
   },
   {
-    type: 'product-grid',
+    type: 'Productgrid',
     label: 'Product Grid',
     description: 'Featured products showcase'
   },
   {
-    type: 'abandoned-cart',
+    type: 'AbandonedCart',
     label: 'Abandoned Cart',
     description: 'Recovery and reminder emails'
   }
@@ -52,7 +52,9 @@ export const Step2EmailType: React.FC<Step2EmailTypeProps> = ({
   const [useCustomHero, setUseCustomHero] = useState(formData.useCustomHero ?? true);
   const [userContext, setUserContext] = useState(formData.userContext);
   const [tone, setTone] = useState(formData.tone ?? 'bold');
-  const [products, setProducts] = useState<ProductLink[]>(formData.products);
+  const [products, setProducts] = useState<ProductLink[]>(
+  Array.isArray(formData.products) ? formData.products : []
+);
   const [showProductForm, setShowProductForm] = useState(false);
   const [newProductName, setNewProductName] = useState('');
   const [newProductUrl, setNewProductUrl] = useState('');
@@ -63,25 +65,29 @@ export const Step2EmailType: React.FC<Step2EmailTypeProps> = ({
   };
 
   const handleAddProduct = () => {
-    if (newProductName.trim() && newProductUrl.trim()) {
-      const newProduct: ProductLink = {
-        name: newProductName.trim(),
-        url: newProductUrl.trim(),
-        image: newProductImage.trim() || undefined
-      };
-      
-      const exists = products.some(p => p.name === newProduct.name || p.url === newProduct.url);
-      
-      if (!exists) {
-        const updatedProducts = [...products, newProduct];
-        setProducts(updatedProducts);
-        setNewProductName('');
-        setNewProductUrl('');
-        setNewProductImage('');
-        setShowProductForm(false);
-      }
+  console.log("products currently is:", products);
+
+  if (newProductName.trim() && newProductUrl.trim()) {
+    const newProduct: ProductLink = {
+      name: newProductName.trim(),
+      url: newProductUrl.trim(),
+      image: newProductImage.trim() || undefined,
+    };
+
+    const exists = products.some(
+      (p) => p.name === newProduct.name || p.url === newProduct.url
+    );
+
+    if (!exists) {
+      const updatedProducts = [...products, newProduct];
+      setProducts(updatedProducts);
+      setNewProductName("");
+      setNewProductUrl("");
+      setNewProductImage("");
+      setShowProductForm(false);
     }
-  };
+  }
+};
 
   const handleRemoveProduct = (index: number) => {
     const updatedProducts = products.filter((_, i) => i !== index);
