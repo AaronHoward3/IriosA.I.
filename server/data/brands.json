@@ -1,4 +1,171 @@
 {
+  "springbot.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "springbotcom",
+      "brandData": {
+        "store_name": "Springbot",
+        "customHeroImage": true,
+        "store_url": "https://springbot.com",
+        "logo_url": "https://media.brand.dev/385bfe23-4214-400e-9c5f-3198f70cbd5a.jpg",
+        "banner_url": "https://media.brand.dev/9db58570-ffb1-4ff3-8932-0d9ac9538ffc.jpg",
+        "backdrops": [
+          {
+            "url": "https://media.brand.dev/9db58570-ffb1-4ff3-8932-0d9ac9538ffc.jpg",
+            "colors": [
+              "Majorelle Gardens",
+              "Sea Elephant",
+              "Porcelain"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/621d836f-46f8-48d8-a732-6be9096ddefd.jpg",
+            "colors": [
+              "Pinehurst",
+              "Bannister Brown",
+              "City Brume"
+            ],
+            "desc": "brand backdrop"
+          }
+        ],
+        "fonts": {
+          "title": "dashicons",
+          "body": "ETmodules!important",
+          "button": "ETmodules!important"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "x": "https://x.com/springbot",
+          "facebook": "https://facebook.com/sprbot",
+          "linkedin": "https://linkedin.com/company/springbot"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#686867",
+        "body_color": "#ffffff",
+        "link_color": "#3d3d3d",
+        "text_color": "#141414",
+        "primary_color": "#686867",
+        "button_color": "#686867",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#3d3d3d",
+        "description": "Springbot is a comprehensive platform that empowers eCommerce businesses to efficiently manage their email marketing and paid advertising efforts in one convenient location. With a focus on affordability, effectiveness, and user-friendliness, Springbot caters to the needs of small businesses looking to improve their online presence. By offering a seamless experience, businesses can enhance their email marketing strategies and optimize paid advertising campaigns with ease. Join Springbot today for a free trial and take your eCommerce business to the next level.",
+        "slogan": "Grow with ease through integrated marketing solutions with Springbot",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-07-04T18:42:38.489Z"
+  },
+  "nike.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "nikecom",
+      "brandData": {
+        "store_name": "Nike",
+        "customHeroImage": true,
+        "store_url": "https://nike.com",
+        "logo_url": "https://media.brand.dev/168e1f77-5f01-4ad8-a3ef-baefa5918212.png",
+        "banner_url": "https://media.brand.dev/4f984ec7-bf7d-47c4-95a3-634b32a6b60e.jpg",
+        "backdrops": [
+          {
+            "url": "https://media.brand.dev/4f984ec7-bf7d-47c4-95a3-634b32a6b60e.jpg",
+            "colors": [
+              "Dover Grey",
+              "Sooty",
+              "Leadbelcher"
+            ],
+            "desc": "brand backdrop"
+          }
+        ],
+        "fonts": {
+          "title": "VideoJS",
+          "body": "Neue Frutiger Arabic",
+          "button": "Neue Frutiger Arabic"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "x": "https://x.com/nike",
+          "facebook": "https://facebook.com/nike",
+          "linkedin": "https://linkedin.com/company/nike",
+          "crunchbase": "https://crunchbase.com/organization/nike"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#141414",
+        "body_color": "#ffffff",
+        "link_color": "#7c7c7c",
+        "text_color": "#141414",
+        "primary_color": "#141414",
+        "button_color": "#141414",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#7c7c7c",
+        "description": "NIKE, Inc. is a global leader in athletic footwear, apparel, and equipment, dedicated to inspiring athletes of all ages with innovative products and services. Established in 1964 and headquartered in Beaverton, Oregon, the company originally operated as Blue Ribbon Sports before rebranding as NIKE, Inc. in 1971. NIKE's extensive portfolio includes popular brands such as Jumpman, Converse, and Chuck Taylor, offering a wide range of athletic and casual footwear, as well as performance equipment and accessories for various sports. The company also markets apparel featuring licensed logos from college and professional sports teams. NIKE products are sold through a variety of channels, including retail stores, digital platforms, and independent distributors. Committed to sustainability and community engagement, NIKE aims to deliver exceptional experiences to its customers with services like free delivery and returns through its membership program, emphasizing that winning isn't just for everyone—it's for those who are willing to do whatever it takes.",
+        "slogan": "Winning is for those who do whatever it takes.",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-07-06T16:12:03.718Z"
+  },
+  "puma.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "pumacom",
+      "brandData": {
+        "store_name": "PUMA",
+        "customHeroImage": true,
+        "store_url": "https://puma.com",
+        "logo_url": "https://media.brand.dev/77ce5b6d-496c-4f23-9646-62b42df91ccd.png",
+        "banner_url": "https://media.brand.dev/f6af5040-517b-4d59-be0c-6083d94429c0.jpg",
+        "backdrops": [
+          {
+            "url": "https://media.brand.dev/f6af5040-517b-4d59-be0c-6083d94429c0.jpg",
+            "colors": [
+              "Gallant Green",
+              "Vulcanized",
+              "Hush"
+            ],
+            "desc": "brand backdrop"
+          }
+        ],
+        "fonts": {
+          "title": "Helvetica",
+          "body": "Helvetica",
+          "button": "Helvetica"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "youtube": "https://youtube.com/puma",
+          "x": "https://x.com/puma",
+          "instagram": "https://instagram.com/puma",
+          "facebook": "https://facebook.com/puma"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#ef6228",
+        "body_color": "#ffffff",
+        "link_color": "#845414",
+        "text_color": "#141414",
+        "primary_color": "#ef6228",
+        "button_color": "#ef6228",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#845414",
+        "description": "Established in 1948, this company has built a legacy centered around speed and innovation. With a commitment to excellence, they have consistently delivered high-performance products that push the boundaries of technology. Their mantra, 'Forever. Faster. Since 1948,' reflects their dedication to providing customers with the latest advancements in efficiency and effectiveness. The company's long-standing history positions it as a trusted leader in its industry, continuously evolving to meet the needs of modern consumers while staying true to its core values of reliability and performance.",
+        "slogan": "Forever. Faster. Since 1948.",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-07-06T18:48:39.065Z"
+  },
   "gfuel.com": {
     "userId": null,
     "brand": {
@@ -78,6 +245,88 @@
       "userContext": "",
       "tone": ""
     },
-    "updatedAt": "2025-07-04T05:35:23.083Z"
+    "updatedAt": "2025-07-06T20:39:43.974Z"
+  },
+  "lacucina.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "lacucinacom",
+      "brandData": {
+        "store_name": "Desktop search software - Kuriuz File Finder -",
+        "customHeroImage": true,
+        "store_url": "https://lacucina.com",
+        "logo_url": "https://media.brand.dev/1e7dc4e0-0d62-4bd8-9a60-afe225a20ebe.png",
+        "banner_url": "",
+        "backdrops": [],
+        "fonts": {
+          "title": "Helvetica",
+          "body": "Helvetica",
+          "button": "Helvetica"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "x": "https://x.com/lci_usa",
+          "linkedin": "https://linkedin.com/company/lacucina-space"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#545455",
+        "body_color": "#ffffff",
+        "link_color": "#1a1c1f",
+        "text_color": "#141414",
+        "primary_color": "#545455",
+        "button_color": "#545455",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#1a1c1f",
+        "description": "Kuriuz is a software company that develops tools for efficient desktop management. Their flagship product, Kuriuz File Finder, is a search utility that enables users to quickly locate files on their computer. This free tool simplifies the process of finding files, making it easier for users to access the information they need. With Kuriuz File Finder, users can search their desktop with ease, streamlining their workflow and increasing productivity.",
+        "slogan": "Find files easily and quickly with Kuriuz File Finder",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-07-06T21:44:03.795Z"
+  },
+  "lacucinacommissary.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "lacucinacommissarycom",
+      "brandData": {
+        "store_name": "LaCucina Commissary – Shared-use commercial kitchen in Lake Charles, LA",
+        "customHeroImage": true,
+        "store_url": "https://lacucinacommissary.com",
+        "logo_url": "https://media.brand.dev/dca69806-9e85-4ea2-87b4-e45aaf6ce1a0.png",
+        "banner_url": "",
+        "backdrops": [],
+        "fonts": {
+          "title": "Poppins",
+          "body": "BlinkMacSystemFont",
+          "button": "BlinkMacSystemFont"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "facebook": "https://facebook.com/lacucinalite",
+          "linkedin": "https://linkedin.com/in/leesa-howard-48b8641a0"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#040404",
+        "body_color": "#ffffff",
+        "link_color": "#26a445",
+        "text_color": "#141414",
+        "primary_color": "#040404",
+        "button_color": "#040404",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#26a445",
+        "description": "",
+        "slogan": "",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-07-06T21:44:20.828Z"
   }
 }

@@ -6,13 +6,14 @@ import { Step2EmailType } from './steps/Step2EmailType';
 import { Step4Generation } from './steps/Step4Generation';
 import { Step5Results } from './steps/Step5Results';
 
-export type EmailType = 'promotional' | 'newsletter' | 'product-grid' | 'abandoned-cart';
+export type EmailType = 'Promotion' | 'Newsletter' | 'Productgrid' | 'AbandonedCart';
 export type Tone = 'bold' | 'friendly' | 'formal' | 'fun';
 
 export interface ProductLink {
   name: string;
   url: string;
   image?: string;
+  description?: string;
 }
 
 export interface FormData {

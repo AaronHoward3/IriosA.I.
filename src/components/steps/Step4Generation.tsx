@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { FormData } from '../EmailGenerator';
-import { useTheme } from '@/contexts/ThemeContext';
+import React, { useEffect } from "react";
+import { FormData } from "../EmailGenerator";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface Step4GenerationProps {
   formData: FormData;
@@ -18,37 +18,42 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
   useEffect(() => {
     const generateEmails = async () => {
       try {
-        // Simulate API call to /api/generate-emails
-        await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second delay
-        
-        const mockEmails = [
-          {
-            id: 1,
-            type: formData.emailType,
-            subject: `Amazing ${formData.emailType} from ${formData.domain}`,
-            mjml: `<mjml><mj-body><mj-section><mj-column><mj-text>Sample ${formData.emailType} email content</mj-text></mj-column></mj-section></mj-body></mjml>`,
-            preview: `This is a sample ${formData.emailType} email generated for ${formData.domain}`
-          },
-          {
-            id: 2,
-            type: formData.emailType,
-            subject: `Follow-up ${formData.emailType} from ${formData.domain}`,
-            mjml: `<mjml><mj-body><mj-section><mj-column><mj-text>Follow-up ${formData.emailType} email content</mj-text></mj-column></mj-section></mj-body></mjml>`,
-            preview: `This is a follow-up ${formData.emailType} email for ${formData.domain}`
-          },
-          {
-            id: 3,
-            type: formData.emailType,
-            subject: `Special ${formData.emailType} from ${formData.domain}`,
-            mjml: `<mjml><mj-body><mj-section><mj-column><mj-text>Special ${formData.emailType} email content</mj-text></mj-column></mj-section></mj-body></mjml>`,
-            preview: `This is a special ${formData.emailType} email for ${formData.domain}`
-          }
-        ];
+        if (!formData.brandData) {
+          console.error("No brand data found, cannot generate emails.");
+          return;
+        }
 
-        updateFormData({ generatedEmails: mockEmails });
+        // build final JSON
+        const finalPayload = {
+  domain: formData.domain,                 // orchestrator uses this to look up
+  emailType: formData.emailType ?? "",
+  userContext: formData.userContext ?? "",
+  tone: formData.tone ?? "",
+  customHeroImage: formData.useCustomHero ?? true,
+  products: formData.products ?? [],
+};
+
+        console.log("Sending to /api/generate:", finalPayload);
+
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalPayload),
+        });
+
+        if (!response.ok) {
+          console.error("Generator server error:", response.status);
+          return;
+        }
+
+        const generated = await response.json();
+
+        console.log("Received generated emails:", generated);
+
+        updateFormData({ generatedEmails: generated.emails });
         onNext();
       } catch (error) {
-        console.error('Failed to generate emails:', error);
+        console.error("Failed to generate emails:", error);
       }
     };
 
@@ -58,12 +63,13 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Conditional Background Image */}
-      <div 
+      <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat w-full h-full"
-        style={{ 
-          backgroundImage: theme === 'dark' 
-            ? `url(/lovable-uploads/a7f4769e-d4d7-484e-af11-ea25e93cf98e.png)`
-            : `url(/lovable-uploads/8f705eeb-1097-41b5-a9f8-7fe34598da87.png)`
+        style={{
+          backgroundImage:
+            theme === "dark"
+              ? `url(/lovable-uploads/a7f4769e-d4d7-484e-af11-ea25e93cf98e.png)`
+              : `url(/lovable-uploads/8f705eeb-1097-41b5-a9f8-7fe34598da87.png)`,
         }}
       />
 
@@ -96,7 +102,8 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
             </p>
             {formData.products.length > 0 && (
               <p className="text-sm text-muted-foreground">
-                Featuring {formData.products.length} product{formData.products.length > 1 ? 's' : ''}
+                Featuring {formData.products.length} product
+                {formData.products.length > 1 ? "s" : ""}
               </p>
             )}
           </div>
