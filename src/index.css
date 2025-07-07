@@ -111,3 +111,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes drift {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(80px, -40px);
+  }
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,150,0.25) 0%, rgba(0,255,150,0) 70%);
+  filter: blur(60px);
+  width: 500px;
+  height: 500px;
+  animation: drift 60s ease-in-out infinite alternate;
+}
