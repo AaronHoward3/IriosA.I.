@@ -328,5 +328,265 @@
       "tone": ""
     },
     "updatedAt": "2025-07-06T21:44:20.828Z"
+  },
+  "heydude.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "heydudecom",
+      "brandData": {
+        "store_name": "Hey Dude Shoes",
+        "customHeroImage": true,
+        "store_url": "https://heydude.com",
+        "logo_url": "https://media.brand.dev/a8207dd2-8519-40e7-b7c2-2531d8b2a8e6.png",
+        "banner_url": "https://media.brand.dev/3f11138b-0ef3-4c59-b324-8c1173e4f95d.jpg",
+        "backdrops": [
+          {
+            "url": "https://media.brand.dev/3f11138b-0ef3-4c59-b324-8c1173e4f95d.jpg",
+            "colors": [
+              "Charter",
+              "Pale Sage",
+              "Mandu Dumpling"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/bcf9466e-ea37-429d-8de8-bc1954f14b46.jpg",
+            "colors": [
+              "Sedona Pink",
+              "Silent Sands",
+              "Acajou"
+            ],
+            "desc": "brand backdrop"
+          }
+        ],
+        "fonts": {
+          "title": "Helvetica",
+          "body": "Helvetica",
+          "button": "Helvetica"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "instagram": "https://instagram.com/heydude",
+          "facebook": "https://facebook.com/heydudeshoesusa",
+          "x": "https://x.com/heydudeshoesusa",
+          "linkedin": "https://linkedin.com/company/heydude",
+          "crunchbase": "https://crunchbase.com/organization/hey-dude-shoes",
+          "youtube": "https://youtube.com/channel/ucbldddwfm57cczgq5pxphbg"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#a5a5a5",
+        "body_color": "#ffffff",
+        "link_color": "#323232",
+        "text_color": "#141414",
+        "primary_color": "#a5a5a5",
+        "button_color": "#a5a5a5",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#323232",
+        "description": "Hey Dude Shoes is a dynamic fashion retail brand specializing in a diverse range of lightweight, comfortable, and stylish footwear for men, women, and children. With a focus on creating 'go-to' shoes that elevate your everyday experience, Hey Dude Shoes combines quality and affordability to deliver footwear that feels supportive and uplifting. Their innovative designs ensure that every pair embodies comfort, with materials so airy and soft, they are described as the lightest shoes on Earth. The brand aims to provide essential footwear that not only enhances your personal style but also promotes a sense of ease and happiness. Whether you’re looking for something casual or chic, Hey Dude Shoes invites you to discover the perfect fit for your lifestyle, making every step feel just right.",
+        "slogan": "Lightweight comfort, style, and support for every step of life.",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-07-14T16:33:46.082Z"
+  },
+  "www.adoredvintage.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "adoredvintagecom",
+      "brandData": {
+        "store_name": "Adored Vintage",
+        "customHeroImage": true,
+        "store_url": "https://adoredvintage.com",
+        "logo_url": "https://media.brand.dev/c99ef90a-e8eb-4e87-a9bb-1220cd484338.jpg",
+        "banner_url": "https://media.brand.dev/c056396f-6bdc-49d0-b0cb-aed8e5e7ca04.png",
+        "backdrops": [
+          {
+            "url": "https://media.brand.dev/c056396f-6bdc-49d0-b0cb-aed8e5e7ca04.png",
+            "colors": [
+              "Dotted Dove",
+              "Wood Bark"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/dc6e92d8-b8ff-423a-96ef-8cb2c0ff90c3.png",
+            "colors": [
+              "Clove Yellow Brown",
+              "Grey By Me",
+              "Down-to-Earth"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/d412ce2f-3366-4e9a-b49b-ba814881642a.png",
+            "colors": [
+              "Baby Blossom",
+              "Soft Fur",
+              "Carbon Fiber"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/891c848b-b08c-4f88-9798-24243aaf8539.jpg",
+            "colors": [
+              "Shea",
+              "Soft Fur",
+              "Carbon Fiber"
+            ],
+            "desc": "brand backdrop"
+          }
+        ],
+        "fonts": {
+          "title": "Helvetica",
+          "body": "Helvetica",
+          "button": "Helvetica"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "instagram": "https://instagram.com/adoredvintage",
+          "facebook": "https://facebook.com/adoredvintage",
+          "linkedin": "https://linkedin.com/company/adoredvintagellc",
+          "x": "https://x.com/maripet9",
+          "youtube": "https://youtube.com/channel/ucvjfusqmvr-wcjel4m6-qrg"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#f6efe0",
+        "body_color": "#ffffff",
+        "link_color": "#8c8474",
+        "text_color": "#141414",
+        "primary_color": "#f6efe0",
+        "button_color": "#f6efe0",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#8c8474",
+        "description": "Adored Vintage is a Portland-based e-commerce company offering a curated selection of timeless, feminine apparel and home goods. With a blend of vintage and modern styles, they cater to modern romantics. They also operate a clothing label, Atèlëtte, launched in 2022, focusing on effortlessly feminine clothing for women who appreciate the simple joys in life.",
+        "slogan": "Timeless, Feminine Apparel for Modern Romantics",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-08-06T19:34:31.616Z"
+  },
+  "bruvi.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "bruvicom",
+      "brandData": {
+        "store_name": "Bruvi",
+        "customHeroImage": true,
+        "store_url": "https://bruvi.com",
+        "logo_url": "https://media.brand.dev/8ff36bdd-f666-489b-8328-5017887145db.jpg",
+        "banner_url": "https://media.brand.dev/6599938e-56b5-4a84-bbb2-417bd2fe2387.png",
+        "backdrops": [
+          {
+            "url": "https://media.brand.dev/6599938e-56b5-4a84-bbb2-417bd2fe2387.png",
+            "colors": [
+              "Frisky Blue",
+              "China Seas",
+              "Sidewalk Chalk Blue"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/31785131-d374-4a7b-b9bd-9db2bf1653c5.png",
+            "colors": [
+              "Midnight Brown",
+              "Sea Deep",
+              "Santo"
+            ],
+            "desc": "brand backdrop"
+          }
+        ],
+        "fonts": {
+          "title": "Helvetica",
+          "body": "Helvetica",
+          "button": "Helvetica"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "x": "https://x.com/colombianllc",
+          "instagram": "https://instagram.com/ilovebruvi",
+          "linkedin": "https://linkedin.com/company/bruvibeverage",
+          "youtube": "https://youtube.com/channel/ucwyr-0bglnhpqk4ncntlb_g/featured"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#064d7c",
+        "body_color": "#ffffff",
+        "link_color": "#7aa4b4",
+        "text_color": "#141414",
+        "primary_color": "#064d7c",
+        "button_color": "#064d7c",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#7aa4b4",
+        "description": "Bruvi is a Los Angeles-based coffee brand that has developed a revolutionary single-serve coffee brewer. It delivers high-quality, tastier brewed coffee with its innovative brewing technology and premium coffee pods. The company aims to provide a convenient and guilt-free coffee experience with its Guilt Free Toss capsules, offering a range of coffee options including coffee, espresso, and cold brew.",
+        "slogan": "Exceptional coffee, made easy.",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-08-06T20:09:21.056Z"
+  },
+  "terrebleu.ca": {
+    "userId": null,
+    "brand": {
+      "storeId": "terrebleuca",
+      "brandData": {
+        "store_name": "Terre Bleu",
+        "customHeroImage": true,
+        "store_url": "https://terrebleu.ca",
+        "logo_url": "https://media.brand.dev/cb09f6d0-586b-49c0-941b-453305227b27.jpg",
+        "banner_url": "https://media.brand.dev/c65fcc18-e8d1-43f6-ad64-47ebf9458ee5.png",
+        "backdrops": [
+          {
+            "url": "https://media.brand.dev/c65fcc18-e8d1-43f6-ad64-47ebf9458ee5.png",
+            "colors": [
+              "Fresh Eggplant",
+              "Bloomsberry"
+            ],
+            "desc": "brand backdrop"
+          }
+        ],
+        "fonts": {
+          "title": "Helvetica",
+          "body": "Helvetica",
+          "button": "Helvetica"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "instagram": "https://instagram.com/terrebleu",
+          "tiktok": "https://tiktok.com/@terre.bleu",
+          "facebook": "https://facebook.com/terrebleulavender",
+          "linkedin": "https://linkedin.com/company/3262947",
+          "x": "https://x.com/terrebleulav",
+          "youtube": "https://youtube.com/channel/ucswrkniso8qxjxkng5jggaq"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#24447c",
+        "body_color": "#ffffff",
+        "link_color": "#8b9cb7",
+        "text_color": "#141414",
+        "primary_color": "#24447c",
+        "button_color": "#24447c",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#8b9cb7",
+        "description": "Fennario Meadows is a Canadian lavender boutique offering a range of natural, locally produced wellness products. Based in Ontario, they cultivate lavender on their farm to create organic products including pure essential oil, culinary, and skin care items. With a focus on quality and sustainability, they opened a boutique and experience centre in July 2022, showcasing their lavender-based products and providing a unique experience for customers.",
+        "slogan": "Stimulating the senses, inspiring the mind, body & soul",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-08-08T20:20:48.128Z"
   }
 }

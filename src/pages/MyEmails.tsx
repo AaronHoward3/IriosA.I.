@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Eye, Copy, Trash2, Edit } from 'lucide-react';
+import { X, Plus, Eye, Copy, Trash2, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
 
 interface SavedEmail {
   id: number;
@@ -23,6 +24,7 @@ const MyEmails = () => {
   const { toast } = useToast();
   const [savedEmails, setSavedEmails] = useState<SavedEmail[]>([]);
   const [expandedEmailId, setExpandedEmailId] = useState<number | null>(null);
+  const [copyDropdownOpenId, setCopyDropdownOpenId] = useState<number | null>(null);
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('savedEmails') || '[]');
@@ -33,19 +35,17 @@ const MyEmails = () => {
     navigate('/generator?step=2');
   };
 
-  const handleEditEmail = (id: number) => {
-    navigate(`/email-editor?id=${id}`);
-  };
-
-  const handleCopyMJML = async (mjml: string) => {
+  const handleCopy = async (text: string, type: 'MJML' | 'HTML') => {
     try {
-      await navigator.clipboard.writeText(mjml);
+      await navigator.clipboard.writeText(text);
+      
       toast({
-        title: "MJML Copied",
-        description: "The MJML code has been copied to your clipboard.",
+        title: `${type} Copied`,
+        description: `Copied ${type} code to clipboard.`,
       });
+
     } catch (error) {
-      console.error('Failed to copy MJML:', error);
+      console.error(`Failed to copy ${type}:`, error);
     }
   };
 
@@ -70,19 +70,21 @@ const MyEmails = () => {
     return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
   };
 
+  const currentEmail = savedEmails.find(email => email.id === expandedEmailId);
+
   return (
     <>
       <Navigation />
       <div className="pt-16 min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">My Emails</h1>
               <p className="text-muted-foreground mt-2">
                 View and manage your saved email templates.
               </p>
             </div>
-            <GradientButton onClick={handleCreateNew} variant="solid" className="flex items-center gap-2">
+            <GradientButton onClick={handleCreateNew} variant="solid" className="flex items-center gap-2 transition-transform duration-200 ease-in-out hover:scale-105">
               <Plus className="h-4 w-4" />
               Create New
             </GradientButton>
@@ -90,7 +92,7 @@ const MyEmails = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="flex items-center justify-between flex-wrap gap-2">
                 Saved Email Templates
                 <Badge variant="secondary">{savedEmails.length} Templates</Badge>
               </CardTitle>
@@ -108,43 +110,46 @@ const MyEmails = () => {
                 </div>
               ) : (
                 savedEmails.map((email) => (
-                  <div key={email.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium">{email.subject || '(No Subject)'}</h3>
+                  <div key={email.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border rounded-2xl bg-muted/40">
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-base text-foreground">{email.subject || '(No Subject)'}</h3>
                       <p className="text-sm text-muted-foreground">
                         {email.domain} • {email.emailType} • {formatDate(email.createdAt)}
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleEditEmail(email.id)}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setExpandedEmailId(email.id)}
-                      >
+                    <div className="flex flex-wrap gap-2 sm:justify-end relative">
+                      <Button variant="outline" size="sm" onClick={() => setExpandedEmailId(email.id)}>
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleCopyMJML(email.mjml)}
+                      <div
+                        className="relative inline-block"
+                        onMouseEnter={() => setCopyDropdownOpenId(email.id)}
+                        onMouseLeave={() => setCopyDropdownOpenId(null)}
                       >
-                        <Copy className="h-4 w-4 mr-1" />
-                        Copy
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDeleteEmail(email.id)}
-                      >
+                        <Button variant="outline" size="sm">
+                          <Copy className="h-4 w-4 mr-1" />
+                          Copy
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </Button>
+                        {copyDropdownOpenId === email.id && (
+                          <div className="absolute top-[100%] right-0 bg-popover border rounded-md shadow-md z-50 overflow-hidden">
+                            <button
+                              onClick={() => handleCopy(email.mjml, 'MJML')}
+                              className="block w-full text-left px-4 py-2 text-sm hover:bg-accent"
+                            >
+                              Copy MJML
+                            </button>
+                            <button
+                              onClick={() => handleCopy(email.html || '', 'HTML')}
+                              className="block w-full text-left px-4 py-2 text-sm hover:bg-accent"
+                            >
+                              Copy HTML
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => handleDeleteEmail(email.id)}>
                         <Trash2 className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
@@ -156,85 +161,72 @@ const MyEmails = () => {
           </Card>
         </div>
 
-        {/* Email Preview Modal */}
-        {expandedEmailId && (() => {
-          const current = savedEmails.find(email => email.id === expandedEmailId);
-          return (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-              <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                <div className="flex items-center justify-between p-6 border-b">
-                  <h2 className="text-2xl font-bold">
-                    {current?.subject || '(No Subject)'}
-                  </h2>
-                  <button
-                    onClick={() => setExpandedEmailId(null)}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors"
-                  >
-                    <Plus className="h-5 w-5 rotate-45" />
-                  </button>
-                </div>
-                
-                <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-                  {/* HTML Preview (exactly like Step5 expanded view) */}
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4">Rendered Preview</h3>
-                    <div className="bg-background rounded border min-h-[300px] overflow-auto p-4">
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: current?.html || "<div>No preview available.</div>",
-                        }}
-                        style={{ backgroundColor: "#fff" }}
-                      />
-                    </div>
-                  </div>
+        {expandedEmailId && currentEmail && (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="relative">
+      {/* Exit Button */}
+      <div className="absolute -top-4 -right-4 z-10">
+        <button
+          onClick={() => setExpandedEmailId(null)}
+          className="transition bg-gradient-to-br from-green-300 to-emerald-500 text-white p-2 rounded-full shadow hover:brightness-110"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
 
-                  {/* MJML Code */}
-                  <div className="bg-muted rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4">MJML Code</h3>
-                    <pre className="text-sm overflow-x-auto whitespace-pre-wrap break-words bg-background p-4 rounded border max-h-64 overflow-y-auto">
-                      {current?.mjml}
-                    </pre>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex space-x-4">
-                    <GradientButton
-                      variant="solid"
-                      onClick={() => {
-                        if (expandedEmailId) handleEditEmail(expandedEmailId);
-                      }}
-                      className="flex-1 flex items-center gap-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                      Edit Email
-                    </GradientButton>
-                    <GradientButton
-                      variant="white-outline"
-                      onClick={() => {
-                        if (current) handleCopyMJML(current.mjml);
-                      }}
-                      className="flex-1"
-                    >
-                      Copy MJML
-                    </GradientButton>
-                    <GradientButton
-                      variant="white-outline"
-                      onClick={() => {
-                        if (expandedEmailId) {
-                          handleDeleteEmail(expandedEmailId);
-                          setExpandedEmailId(null);
-                        }
-                      }}
-                      className="flex-1"
-                    >
-                      Delete Email
-                    </GradientButton>
-                  </div>
-                </div>
-              </div>
+      {/* Modal Container */}
+      <div className="bg-background rounded-lg w-full max-w-[90rem] h-[90vh] overflow-hidden shadow-lg flex flex-col lg:flex-row">
+        {/* LEFT PANEL */}
+        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full p-6">
+          <div className="bg-muted rounded-lg h-full flex flex-col shadow border border-border">
+            <div className="p-4 border-b border-border font-semibold text-foreground flex justify-between items-center">
+              <span>Subject Line: {currentEmail.subject || '(No Subject)'}</span>
             </div>
-          );
-        })()}
+            <div className="flex-1 min-h-0 overflow-auto bg-background rounded-b-lg">
+              <iframe
+                srcDoc={currentEmail.html}
+                sandbox=""
+                className="w-full h-full border-0"
+                style={{ backgroundColor: 'white' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full p-6 flex flex-col space-y-4">
+          {/* MJML Box */}
+          <div className="flex-1 min-h-0 bg-muted rounded-lg border border-border flex flex-col shadow overflow-hidden">
+            <div className="p-4 border-b border-border flex justify-between items-center">
+              <h3 className="font-semibold text-foreground">MJML Code</h3>
+              <GradientButton size="sm" variant="white-outline" onClick={() => handleCopy(currentEmail.mjml, 'MJML')}>
+                <Copy className="w-4 h-4 mr-2" />
+                Copy MJML
+              </GradientButton>
+            </div>
+            <div className="flex-1 min-h-0 overflow-auto p-4 bg-background text-sm text-muted-foreground">
+              <pre className="whitespace-pre-wrap break-words">{currentEmail.mjml}</pre>
+            </div>
+          </div>
+
+          {/* HTML Box */}
+          <div className="flex-1 min-h-0 bg-muted rounded-lg border border-border flex flex-col shadow overflow-hidden">
+            <div className="p-4 border-b border-border flex justify-between items-center">
+              <h3 className="font-semibold text-foreground">HTML Code</h3>
+              <GradientButton size="sm" variant="white-outline" onClick={() => handleCopy(currentEmail.html || '', 'HTML')}>
+                <Copy className="w-4 h-4 mr-2" />
+                Copy HTML
+              </GradientButton>
+            </div>
+            <div className="flex-1 min-h-0 overflow-auto p-4 bg-background text-sm text-muted-foreground">
+              <pre className="whitespace-pre-wrap break-words">{currentEmail.html}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </>
   );

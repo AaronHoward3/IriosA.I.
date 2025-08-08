@@ -5,45 +5,115 @@ import { GradientButton } from '@/components/ui/gradient-button';
 import { ArrowRight } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useTheme } from '@/contexts/ThemeContext';
+import { motion } from 'framer-motion';
+
+export const DotBackground: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const dots = Array.from({ length: 40 });
+
+  return (
+    <>
+      <div
+        className="absolute inset-0 z-0 overflow-hidden"
+        style={{ backgroundColor: isDark ? "#0a1426" : "#eeeeeeff" }}
+      >
+        {dots.map((_, i) => {
+          const size = Math.random() * 200 + 200; // 40px to 80px
+          const x = Math.random() * 100;
+          const y = Math.random() * 100;
+          const delay = Math.random() * 7;
+
+          return (
+            <div
+              key={i}
+              className={`absolute rounded-full animate-dot-float ${isDark ? "mix-blend-screen" : ""}`}
+              style={{
+                top: `${y}vh`,
+                left: `${x}vw`,
+                width: `${size}px`,
+                height: `${size}px`,
+                backgroundColor: isDark ? "#03251bff" : "#ddf5e5ff",
+                filter: "blur(100px)",
+                opacity: isDark ? 0.35 : 0.6,
+                animationDelay: `${-delay}s`,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      <style>{`
+        @keyframes dot-float {
+          0% { transform: translateY(0); opacity: 0.8; }
+          100% { transform: translateY(-100px); opacity: 0.5; }
+        }
+        .animate-dot-float {
+          animation: dot-float 7s ease-in-out infinite alternate;
+        }
+      `}</style>
+    </>
+  );
+};
 
 const Home = () => {
-  const { theme } = useTheme();
+  const containerVariants = {
+    hidden: {},
+    show: {
+      transition: {
+        staggerChildren: 0.25
+      }
+    }
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut" as const
+      }
+    }
+  };
 
   return (
     <>
       <Navigation />
-      <div className="relative min-h-screen overflow-hidden pt-16">
-        {/* Conditional Background Image */}
-        <div 
-          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat w-full h-full"
-          style={{ 
-            backgroundImage: theme === 'dark' 
-              ? `url(/lovable-uploads/a7f4769e-d4d7-484e-af11-ea25e93cf98e.png)`
-              : `url(/lovable-uploads/8f705eeb-1097-41b5-a9f8-7fe34598da87.png)`
-          }}
-        />
+      <div className="fixed inset-0 overflow-hidden z-0">
+        <DotBackground />
 
-        {/* Content */}
-        <div className="relative z-20 min-h-screen flex items-center justify-center px-4">
-          <div className="text-center max-w-4xl mx-auto space-y-8">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight bg-gradient-to-r from-gradient-start to-gradient-end bg-clip-text text-transparent">
+        <div className="relative z-10 h-screen flex items-center justify-center px-4 pt-16">
+          <motion.div
+            className="text-center max-w-4xl mx-auto space-y-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+          >
+            <motion.h1
+              className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight bg-gradient-to-r from-gradient-start to-gradient-end bg-clip-text text-transparent"
+              variants={fadeInUp}
+            >
               SendAI
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed font-medium">
-              Create beautiful, responsive email templates with AI-powered generation. 
-              Transform your email marketing with professional designs that work across all devices.
-            </p>
+            </motion.h1>
 
-            <div className="pt-8">
+            <motion.p
+              className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed font-medium"
+              variants={fadeInUp}
+            >
+              Create beautiful, responsive email templates with AI-powered generation.
+            </motion.p>
+
+            <motion.div variants={fadeInUp} className="pt-8">
               <Link to="/generator">
-                <GradientButton variant="solid" size="xl" className="group font-bold">
-                  Get Started
+                <GradientButton variant="solid" size="xl" className="group font-bold transition-transform duration-200 ease-in-out hover:scale-105">
+                  Generate Emails
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </GradientButton>
               </Link>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </>
