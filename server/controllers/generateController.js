@@ -1,3 +1,5 @@
+// server/controllers/generateController.js
+
 import { getStoredBrand } from "../utils/dataStore.js";
 import fetch from "node-fetch";
 import mjml2html from "mjml";
@@ -7,9 +9,11 @@ export async function generateEmails(req, res) {
     domain,
     emailType,
     userContext,
+    imageContext,
     tone,
     customHeroImage,
-    products
+    designAesthetic,
+    products,
   } = req.body;
 
   if (!domain) {
@@ -29,13 +33,12 @@ export async function generateEmails(req, res) {
     // inject user inputs
     brandJson.emailType = emailType || "";
     brandJson.userContext = userContext || "";
+    brandJson.imageContext = imageContext || "";
     brandJson.tone = tone || "";
+    brandJson.designAesthetic = designAesthetic || "";
+    brandJson.brandData = brandJson.brandData || {};
     brandJson.brandData.customHeroImage = customHeroImage ?? true;
     brandJson.brandData.products = products ?? [];
-
-    // log the final JSON we send
-    console.log("---- FINAL JSON TO GENERATOR ----");
-    console.log(JSON.stringify(brandJson, null, 2));
 
     // forward to the generator server
     const generatorResponse = await fetch(process.env.GENERATOR_URL, {
@@ -46,28 +49,38 @@ export async function generateEmails(req, res) {
 
     if (!generatorResponse.ok) {
       console.log("Generator server error code:", generatorResponse.status);
-      return res
-        .status(500)
-        .json({ error: "Email generator failed", status: generatorResponse.status });
+      return res.status(500).json({
+        error: "Email generator failed",
+        status: generatorResponse.status,
+      });
     }
 
     const generated = await generatorResponse.json();
+    // Expecting something like:
+    // {
+    //   subjectLine: "Score Big This 4th of July with 50% Off!",
+    //   emails: [{ index, subject?, content (MJML) }]
+    // }
 
-    // convert each MJML to HTML for preview
-    const htmlEmails = generated.emails.map((email) => {
-      const html = mjml2html(email.content);
+    // Convert each MJML to HTML for preview and keep original fields (subject, index, content)
+    const htmlEmails = (generated.emails || []).map((email) => {
+      const compiled = mjml2html(email.content || "");
       return {
-        ...email,
-        html: html.html
+        ...email,                  // 👈 keep subject/index/content coming from generator
+        html: compiled.html || "", // compiled HTML for preview
       };
     });
 
+    // 🚀 IMPORTANT: include the subjectLine from the generator
     res.json({
       success: true,
+      subjectLine:
+        generated.subjectLine ||
+        generated.subject ||           // tolerate different naming
+        (htmlEmails[0]?.subject ?? ""),// last resort: first email subject
       totalTokens: generated.totalTokens,
-      emails: htmlEmails
+      emails: htmlEmails,
     });
-
   } catch (err) {
     console.error("Generate error:", err.message);
     res.status(500).json({ error: "Failed to generate emails" });

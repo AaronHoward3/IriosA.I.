@@ -1,7 +1,10 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const DATA_FILE = path.join(process.cwd(), "data", "brands.json");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_FILE = path.join(__dirname, "../data/brands.json");
 
 export async function getStoredBrand(domain) {
   try {

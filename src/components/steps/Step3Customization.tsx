@@ -1,3 +1,5 @@
+// src/components/steps/Step3Customization.tsx
+
 import React, { useState } from "react";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { GradientTextarea } from "@/components/ui/gradient-textarea";
@@ -24,14 +26,10 @@ export const Step3Customization: React.FC<Step3CustomizationProps> = ({
   onNext,
   onPrev,
 }) => {
-  const [useCustomHero, setUseCustomHero] = useState(
-    formData.useCustomHero ?? true
-  );
+  const [useCustomHero, setUseCustomHero] = useState(formData.useCustomHero ?? true);
   const [userContext, setUserContext] = useState(formData.userContext ?? "");
   const [tone, setTone] = useState(formData.tone ?? "bold");
-  const [products, setProducts] = useState<ProductLink[]>(
-    Array.isArray(formData.products) ? formData.products : []
-  );
+  const [products, setProducts] = useState<ProductLink[]>(Array.isArray(formData.products) ? formData.products : []);
   const [showProductForm, setShowProductForm] = useState(false);
   const [newProductName, setNewProductName] = useState("");
   const [newProductUrl, setNewProductUrl] = useState("");
@@ -69,12 +67,6 @@ export const Step3Customization: React.FC<Step3CustomizationProps> = ({
   };
 
   const handleContinue = () => {
-    console.log("Step 3 confirmed values:", {
-      useCustomHero,
-      userContext,
-      tone,
-      products,
-    });
     updateFormData({
       useCustomHero,
       userContext,
@@ -111,7 +103,7 @@ export const Step3Customization: React.FC<Step3CustomizationProps> = ({
         </div>
       </div>
 
-      {/* Hero toggle */}
+      {/* Hero Toggle */}
       <div className="space-y-4">
         <label className="text-lg font-medium text-foreground">
           Use Custom Hero Image?
@@ -134,7 +126,7 @@ export const Step3Customization: React.FC<Step3CustomizationProps> = ({
         </div>
       </div>
 
-      {/* User context */}
+      {/* User Context */}
       <div className="space-y-4">
         <label className="text-lg font-medium text-foreground">
           User Context
@@ -147,65 +139,66 @@ export const Step3Customization: React.FC<Step3CustomizationProps> = ({
         />
       </div>
 
-      {/* Products */}
+      {/* Products Section */}
       <div className="space-y-4">
-        <label className="text-lg font-medium text-foreground">Products</label>
-        <div>
-          {!showProductForm && (
-            <GradientButton
-              variant="white-outline"
-              onClick={() => setShowProductForm(true)}
-            >
-              Add Product
-            </GradientButton>
-          )}
-          {showProductForm && (
-            <div className="space-y-3 p-4 border border-border rounded-lg">
-              <GradientInput
-                placeholder="Product name..."
-                value={newProductName}
-                onChange={(e) => setNewProductName(e.target.value)}
-              />
-              <GradientInput
-                placeholder="Product URL (https://...)"
-                value={newProductUrl}
-                onChange={(e) => setNewProductUrl(e.target.value)}
-              />
-              <GradientInput
-                placeholder="Product image URL (optional)"
-                value={newProductImage}
-                onChange={(e) => setNewProductImage(e.target.value)}
-              />
-              <GradientInput
-                placeholder="Product description (optional)"
-                value={newProductDescription}
-                onChange={(e) => setNewProductDescription(e.target.value)}
-              />
-              <div className="flex space-x-2">
-                <GradientButton
-                  variant="white-outline"
-                  onClick={() => {
-                    setShowProductForm(false);
-                    setNewProductName("");
-                    setNewProductUrl("");
-                    setNewProductImage("");
-                    setNewProductDescription("");
-                  }}
-                >
-                  Cancel
-                </GradientButton>
-                <GradientButton
-                  variant="solid"
-                  onClick={handleAddProduct}
-                  disabled={!newProductName.trim() || !newProductUrl.trim()}
-                >
-                  Add Product
-                </GradientButton>
-              </div>
+        <label className="text-lg font-medium text-foreground">Scraped / Added Products</label>
+
+        {!showProductForm && (
+          <GradientButton
+            variant="white-outline"
+            onClick={() => setShowProductForm(true)}
+          >
+            Add Product
+          </GradientButton>
+        )}
+
+        {showProductForm && (
+          <div className="space-y-3 p-4 border border-border rounded-lg">
+            <GradientInput
+              placeholder="Product name..."
+              value={newProductName}
+              onChange={(e) => setNewProductName(e.target.value)}
+            />
+            <GradientInput
+              placeholder="Product URL (https://...)"
+              value={newProductUrl}
+              onChange={(e) => setNewProductUrl(e.target.value)}
+            />
+            <GradientInput
+              placeholder="Product image URL (optional)"
+              value={newProductImage}
+              onChange={(e) => setNewProductImage(e.target.value)}
+            />
+            <GradientInput
+              placeholder="Product description (optional)"
+              value={newProductDescription}
+              onChange={(e) => setNewProductDescription(e.target.value)}
+            />
+            <div className="flex space-x-2">
+              <GradientButton
+                variant="white-outline"
+                onClick={() => {
+                  setShowProductForm(false);
+                  setNewProductName("");
+                  setNewProductUrl("");
+                  setNewProductImage("");
+                  setNewProductDescription("");
+                }}
+              >
+                Cancel
+              </GradientButton>
+              <GradientButton
+                variant="solid"
+                onClick={handleAddProduct}
+                disabled={!newProductName.trim() || !newProductUrl.trim()}
+              >
+                Add Product
+              </GradientButton>
             </div>
-          )}
-        </div>
-        {products.length > 0 && (
+          </div>
+        )}
+
+        {products.length > 0 ? (
           <div className="space-y-2">
             {products.map((product, index) => (
               <div
@@ -239,6 +232,8 @@ export const Step3Customization: React.FC<Step3CustomizationProps> = ({
               </div>
             ))}
           </div>
+        ) : (
+          <p className="text-sm text-muted-foreground italic">No products added yet.</p>
         )}
       </div>
 
