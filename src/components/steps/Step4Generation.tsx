@@ -15,17 +15,15 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
 }) => {
   const [status, setStatus] = useState("Starting…");
   const abortRef = useRef<AbortController | null>(null);
-  const startedRef = useRef(false); // prevents double-run in StrictMode
 
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-
-    abortRef.current = new AbortController();
+    // Create a fresh controller per mount (important for React Strict Mode)
+    const controller = new AbortController();
+    abortRef.current = controller;
+    let finished = false;
 
     const run = async () => {
       setStatus("Contacting generator…");
-
       try {
         const res = await fetch("/api/generate", {
           method: "POST",
@@ -41,7 +39,7 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
             brandData: (formData as any).brandData || {},
             customHeroImage: formData.useCustomHero ?? true,
           }),
-          signal: abortRef.current?.signal,
+          signal: controller.signal,
         });
 
         if (!res.ok) {
@@ -49,9 +47,16 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
           return;
         }
 
-        // Expected: { success, subjectLine?, emails:[{ index, subject?, content, html }] }
-        const data = await res.json();
-        console.log("[Generator response]", data); // 🔎 help us see what came back
+        // Parse safely (avoid hanging if backend ever returns non-JSON)
+        const text = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          console.error("Invalid JSON from backend:", text);
+          setStatus("Error: Invalid JSON from backend");
+          return;
+        }
 
         const first = data?.emails?.[0];
         if (!first) {
@@ -59,7 +64,6 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
           return;
         }
 
-        // Robust subject extraction
         const subjectFromTop = data?.subjectLine;
         const subjectFromEmail = first?.subject;
         const subject =
@@ -68,20 +72,26 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
           "(No Subject)";
 
         updateFormData({
-          subjectLine: subject, // save for Step 5 header
+          subjectLine: subject,
           generatedEmails: [
             {
               index: 1,
-              subject, // mirror so Step 5 can fall back
+              subject,
               content: first.content || "",
               html: first.html || "",
             },
           ],
         });
 
+        finished = true;
         setStatus("Done!");
         onNext();
       } catch (err: any) {
+        // IMPORTANT: Ignore the Strict Mode test-run abort — don't show an error
+        if (err?.name === "AbortError") {
+          console.warn("Step 4 fetch aborted (likely Strict Mode pre-render). Ignored.");
+          return;
+        }
         console.error("Generate failed:", err);
         setStatus("Error: " + (err?.message || "unknown"));
       }
@@ -89,8 +99,13 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
 
     run();
 
-    return () => abortRef.current?.abort();
-  }, [formData, updateFormData, onNext]);
+    // Cleanup: only abort if still in-flight; prevents killing the "real" run
+    return () => {
+      if (!finished) controller.abort();
+    };
+    // Depend only on the stable props; avoid retrigger loops mid-request
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-background overflow-hidden">

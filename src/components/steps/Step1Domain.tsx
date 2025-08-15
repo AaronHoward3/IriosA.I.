@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, easeOut } from 'framer-motion';
 import { FormData } from '../EmailGenerator';
 import { ArrowRight } from 'lucide-react';
-import DotBackground from '@/components/ui/DotBackground';
+// ❌ Removed DotBackground import
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface Step1DomainProps {
@@ -27,7 +27,9 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
 
   const inputBg = isDark ? '#111111' : '#ffffff';
   const inputText = isDark ? 'text-white' : 'text-[#111111]';
-  const placeholderText = isDark ? 'placeholder-white/50' : 'placeholder-black/40';
+  const placeholderText = isDark
+    ? 'placeholder-white/50'
+    : 'placeholder-black/40';
 
   const [domain, setDomain] = useState(formData.domain);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,14 +100,14 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
       y: 0,
       transition: {
         duration: 0.8,
-        ease: easeOut, // ✅ TS-safe easing
+        ease: easeOut,
       },
     },
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden z-0">
-      <DotBackground />
+    <div className="fixed inset-0 overflow-hidden z-0 bg-[#0E1626]">
+      {/* ❌ DotBackground removed */}
 
       <div className="relative z-10 h-screen flex items-center justify-center px-4">
         <motion.div
@@ -123,7 +125,10 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
             </p>
           </motion.div>
 
-          <motion.div className="relative w-full max-w-md mx-auto mt-10" variants={fadeInUp}>
+          <motion.div
+            className="relative w-full max-w-md mx-auto mt-10"
+            variants={fadeInUp}
+          >
             <div
               className="absolute inset-0 rounded-full p-[2px] blur-xl opacity-90 bg-repeat bg-[length:800%_100%] animate-gradient-sweep"
               style={{ backgroundImage: gradientBg }}
@@ -148,11 +153,10 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
                 className="ml-2 p-2 rounded-full bg-gradient-to-r from-[#00ffc3] to-[#a3f2d9] hover:scale-105 transition-transform disabled:opacity-50"
               >
                 {isLoading ? (
-  <div className="loader"></div>
-) : (
-  <ArrowRight className="w-5 h-5 text-black" />
-)}
-
+                  <div className="loader"></div>
+                ) : (
+                  <ArrowRight className="w-5 h-5 text-black" />
+                )}
               </button>
             </div>
           </motion.div>
