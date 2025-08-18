@@ -273,9 +273,9 @@ body {
   --bb-alpha: 0.14;
   --bb-blur: 80px;
   --bb-blend: multiply;
-  --bb-speed-1: 42s;
-  --bb-speed-2: 56s;
-  --bb-speed-3: 72s;
+  --bb-speed-1: 24s;
+  --bb-speed-2: 32s;
+  --bb-speed-3: 40s;
 }
 .dark {
   --bb-bg: #0f1115;
@@ -286,6 +286,9 @@ body {
   --bb-alpha: 0.18;
   --bb-blur: 90px;
   --bb-blend: screen;
+    --bb-speed-1: 24s;
+  --bb-speed-2: 32s;
+  --bb-speed-3: 40s;
 }
 
 .bg-blobs,
