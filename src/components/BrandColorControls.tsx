@@ -199,7 +199,7 @@ const BrandColorControls: React.FC<Props> = ({
           type="button"
           disabled={saving}
           onClick={save}
-          className="inline-flex items-center rounded-md bg-foreground text-background px-3 py-2 text-sm disabled:opacity-60"
+          className="inline-flex items-center rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
         >
           {saving ? 'Saving…' : 'Update Brand Colors'}
         </button>

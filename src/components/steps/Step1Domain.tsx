@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { motion, easeOut } from 'framer-motion';
 import { FormData } from '../EmailGenerator';
 import { ArrowRight } from 'lucide-react';
-// ❌ Removed DotBackground import
 import { useTheme } from '@/contexts/ThemeContext';
+
+import Background from "../Background.tsx"; // ✅ uses the blobs variant below
 
 interface Step1DomainProps {
   formData: FormData;
@@ -22,14 +23,12 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
   // 🎨 Glow Colors (4-color sweep)
   const glowColor1 = isDark ? '#8affa7ff' : '#00bcd4';
   const glowColor2 = isDark ? '#56adffff' : '#9c27b0';
-  const glowColor3 = isDark ? '#714df3ff' : '#5cff3bff';
+  const glowColor3 = isDark ? '#4d32b1ff' : '#5cff3bff';
   const glowColor4 = isDark ? '#8affa7ff' : '#4caf50';
 
   const inputBg = isDark ? '#111111' : '#ffffff';
   const inputText = isDark ? 'text-white' : 'text-[#111111]';
-  const placeholderText = isDark
-    ? 'placeholder-white/50'
-    : 'placeholder-black/40';
+  const placeholderText = isDark ? 'placeholder-white/50' : 'placeholder-black/40';
 
   const [domain, setDomain] = useState(formData.domain);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,28 +85,18 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
 
   const containerVariants = {
     hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
+    show: { transition: { staggerChildren: 0.2 } },
   };
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.8,
-        ease: easeOut,
-      },
-    },
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: easeOut } },
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden z-0 bg-[#0E1626]">
-      {/* ❌ DotBackground removed */}
+    <div className="fixed inset-0 overflow-hidden z-0 bg-transparent">
+      {/* ✅ Hardcoded to blobs */}
+      <Background variant="blobs" />
 
       <div className="relative z-10 h-screen flex items-center justify-center px-4">
         <motion.div
@@ -168,7 +157,6 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
           0% { background-position: 0% 50%; }
           100% { background-position: 100% 50%; }
         }
-
         .animate-gradient-sweep {
           animation: gradient-sweep 12s linear infinite;
         }
