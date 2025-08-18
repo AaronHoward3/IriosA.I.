@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus, Eye, Copy, Trash2, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-
 interface SavedEmail {
   id: number;
   subject?: string;
@@ -38,12 +37,10 @@ const MyEmails = () => {
   const handleCopy = async (text: string, type: 'MJML' | 'HTML') => {
     try {
       await navigator.clipboard.writeText(text);
-      
       toast({
         title: `${type} Copied`,
         description: `Copied ${type} code to clipboard.`,
       });
-
     } catch (error) {
       console.error(`Failed to copy ${type}:`, error);
     }
@@ -84,7 +81,11 @@ const MyEmails = () => {
                 View and manage your saved email templates.
               </p>
             </div>
-            <GradientButton onClick={handleCreateNew} variant="solid" className="flex items-center gap-2 transition-transform duration-200 ease-in-out hover:scale-105">
+            <GradientButton
+              onClick={handleCreateNew}
+              variant="solid"
+              className="flex items-center gap-2 transition-transform duration-200 ease-in-out hover:scale-105 !bg-primary !text-primary-foreground hover:!bg-primary/90"
+            >
               <Plus className="h-4 w-4" />
               Create New
             </GradientButton>
@@ -110,7 +111,10 @@ const MyEmails = () => {
                 </div>
               ) : (
                 savedEmails.map((email) => (
-                  <div key={email.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border rounded-2xl bg-muted/40">
+                  <div
+                    key={email.id}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border rounded-2xl bg-muted/40"
+                  >
                     <div className="space-y-1">
                       <h3 className="font-semibold text-base text-foreground">{email.subject || '(No Subject)'}</h3>
                       <p className="text-sm text-muted-foreground">
@@ -118,16 +122,26 @@ const MyEmails = () => {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2 sm:justify-end relative">
-                      <Button variant="outline" size="sm" onClick={() => setExpandedEmailId(email.id)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setExpandedEmailId(email.id)}
+                        className="!bg-background !text-foreground !border !border-border hover:!bg-muted"
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
+
                       <div
                         className="relative inline-block"
                         onMouseEnter={() => setCopyDropdownOpenId(email.id)}
                         onMouseLeave={() => setCopyDropdownOpenId(null)}
                       >
-                        <Button variant="outline" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="!bg-background !text-foreground !border !border-border hover:!bg-muted"
+                        >
                           <Copy className="h-4 w-4 mr-1" />
                           Copy
                           <ChevronDown className="h-3 w-3 ml-1" />
@@ -149,7 +163,13 @@ const MyEmails = () => {
                           </div>
                         )}
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => handleDeleteEmail(email.id)}>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteEmail(email.id)}
+                        className="!bg-background !text-foreground !border !border-border hover:!bg-muted"
+                      >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
@@ -162,71 +182,81 @@ const MyEmails = () => {
         </div>
 
         {expandedEmailId && currentEmail && (
-  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-    <div className="relative">
-      {/* Exit Button */}
-      <div className="absolute -top-4 -right-4 z-10">
-        <button
-          onClick={() => setExpandedEmailId(null)}
-          className="transition bg-gradient-to-br from-green-300 to-emerald-500 text-white p-2 rounded-full shadow hover:brightness-110"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="relative">
+              {/* Exit Button (kept green accent) */}
+              <div className="absolute -top-4 -right-4 z-10">
+                <button
+                  onClick={() => setExpandedEmailId(null)}
+                  className="transition bg-gradient-to-br from-green-300 to-emerald-500 text-white p-2 rounded-full shadow hover:brightness-110"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
 
-      {/* Modal Container */}
-      <div className="bg-background rounded-lg w-full max-w-[90rem] h-[90vh] overflow-hidden shadow-lg flex flex-col lg:flex-row">
-        {/* LEFT PANEL */}
-        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full p-6">
-          <div className="bg-muted rounded-lg h-full flex flex-col shadow border border-border">
-            <div className="p-4 border-b border-border font-semibold text-foreground flex justify-between items-center">
-              <span>Subject Line: {currentEmail.subject || '(No Subject)'}</span>
-            </div>
-            <div className="flex-1 min-h-0 overflow-auto bg-background rounded-b-lg">
-              <iframe
-                srcDoc={currentEmail.html}
-                sandbox=""
-                className="w-full h-full border-0"
-                style={{ backgroundColor: 'white' }}
-              />
+              {/* Modal Container */}
+              <div className="bg-background rounded-lg w-full max-w-[90rem] h-[90vh] overflow-hidden shadow-lg flex flex-col lg:flex-row">
+                {/* LEFT PANEL */}
+                <div className="w-full lg:w-1/2 h-[50vh] lg:h-full p-6">
+                  <div className="bg-muted rounded-lg h-full flex flex-col shadow border border-border">
+                    <div className="p-4 border-b border-border font-semibold text-foreground flex justify-between items-center">
+                      <span>Subject Line: {currentEmail.subject || '(No Subject)'}</span>
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-auto bg-background rounded-b-lg">
+                      <iframe
+                        srcDoc={currentEmail.html}
+                        sandbox=""
+                        className="w-full h-full border-0"
+                        style={{ backgroundColor: 'white' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* RIGHT PANEL */}
+                <div className="w-full lg:w-1/2 h-[50vh] lg:h-full p-6 flex flex-col space-y-4">
+                  {/* MJML Box */}
+                  <div className="flex-1 min-h-0 bg-muted rounded-lg border border-border flex flex-col shadow overflow-hidden">
+                    <div className="p-4 border-b border-border flex justify-between items-center">
+                      <h3 className="font-semibold text-foreground">MJML Code</h3>
+                      <GradientButton
+                        size="sm"
+                        variant="white-outline"
+                        onClick={() => handleCopy(currentEmail.mjml, 'MJML')}
+                        className="hover:scale-105 !bg-background !text-foreground !border !border-border hover:!bg-muted"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy MJML
+                      </GradientButton>
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-auto p-4 bg-background text-sm text-muted-foreground">
+                      <pre className="whitespace-pre-wrap break-words">{currentEmail.mjml}</pre>
+                    </div>
+                  </div>
+
+                  {/* HTML Box */}
+                  <div className="flex-1 min-h-0 bg-muted rounded-lg border border-border flex flex-col shadow overflow-hidden">
+                    <div className="p-4 border-b border-border flex justify-between items-center">
+                      <h3 className="font-semibold text-foreground">HTML Code</h3>
+                      <GradientButton
+                        size="sm"
+                        variant="white-outline"
+                        onClick={() => handleCopy(currentEmail.html || '', 'HTML')}
+                        className="hover:scale-105 !bg-background !text-foreground !border !border-border hover:!bg-muted"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy HTML
+                      </GradientButton>
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-auto p-4 bg-background text-sm text-muted-foreground">
+                      <pre className="whitespace-pre-wrap break-words">{currentEmail.html}</pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* RIGHT PANEL */}
-        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full p-6 flex flex-col space-y-4">
-          {/* MJML Box */}
-          <div className="flex-1 min-h-0 bg-muted rounded-lg border border-border flex flex-col shadow overflow-hidden">
-            <div className="p-4 border-b border-border flex justify-between items-center">
-              <h3 className="font-semibold text-foreground">MJML Code</h3>
-              <GradientButton size="sm" variant="white-outline" onClick={() => handleCopy(currentEmail.mjml, 'MJML')}>
-                <Copy className="w-4 h-4 mr-2" />
-                Copy MJML
-              </GradientButton>
-            </div>
-            <div className="flex-1 min-h-0 overflow-auto p-4 bg-background text-sm text-muted-foreground">
-              <pre className="whitespace-pre-wrap break-words">{currentEmail.mjml}</pre>
-            </div>
-          </div>
-
-          {/* HTML Box */}
-          <div className="flex-1 min-h-0 bg-muted rounded-lg border border-border flex flex-col shadow overflow-hidden">
-            <div className="p-4 border-b border-border flex justify-between items-center">
-              <h3 className="font-semibold text-foreground">HTML Code</h3>
-              <GradientButton size="sm" variant="white-outline" onClick={() => handleCopy(currentEmail.html || '', 'HTML')}>
-                <Copy className="w-4 h-4 mr-2" />
-                Copy HTML
-              </GradientButton>
-            </div>
-            <div className="flex-1 min-h-0 overflow-auto p-4 bg-background text-sm text-muted-foreground">
-              <pre className="whitespace-pre-wrap break-words">{currentEmail.html}</pre>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+        )}
       </div>
     </>
   );

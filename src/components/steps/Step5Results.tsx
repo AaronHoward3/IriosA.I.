@@ -78,7 +78,12 @@ export const Step5Results: React.FC<Step5ResultsProps> = ({
     return (
       <div className="text-center space-y-8 pt-16">
         <h1 className="text-3xl font-bold text-foreground">No email generated</h1>
-        <GradientButton onClick={onPrev}>Go Back</GradientButton>
+        <GradientButton
+          onClick={onPrev}
+          className="!bg-primary !text-primary-foreground hover:!bg-primary/90"
+        >
+          Go Back
+        </GradientButton>
       </div>
     );
   }
@@ -120,7 +125,7 @@ export const Step5Results: React.FC<Step5ResultsProps> = ({
               size="sm"
               variant="white-outline"
               onClick={handleCopyMJML}
-              className="hover:scale-105 border border-border/60"
+              className="hover:scale-105 !bg-background !text-foreground !border !border-border hover:!bg-muted"
             >
               <Copy className="w-4 h-4 mr-2" />
               {copiedMJML ? "Copied" : "Copy MJML"}
@@ -144,7 +149,7 @@ export const Step5Results: React.FC<Step5ResultsProps> = ({
               variant="white-outline"
               onClick={handleCopyHTML}
               disabled={!html}
-              className="hover:scale-105 border border-border/60 disabled:opacity-60"
+              className="hover:scale-105 !bg-background !text-foreground !border !border-border hover:!bg-muted disabled:opacity-60"
             >
               <Copy className="w-4 h-4 mr-2" />
               {copiedHTML ? "Copied" : "Copy HTML"}
@@ -162,7 +167,7 @@ export const Step5Results: React.FC<Step5ResultsProps> = ({
           <GradientButton
             variant="solid"
             onClick={handleSaveEmail}
-            className="w-full justify-center text-lg hover:scale-105"
+            className="w-full justify-center text-lg hover:scale-105 !bg-primary !text-primary-foreground hover:!bg-primary/90 disabled:opacity-60"
             disabled={saved}
           >
             <Save className="h-5 w-5 mr-2" />
