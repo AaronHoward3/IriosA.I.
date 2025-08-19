@@ -44,7 +44,8 @@ const Navigation: React.FC<NavigationProps> = ({ onHomeClick }) => {
         </Button>
 
         {/* Center Title */}
-        <div className="text-lg font-semibold text-foreground">Sendai</div>
+        <div className="text-lg font-semibold text-foreground">Irios A.I.
+        </div>
 
         {/* Profile Dropdown (click to open) */}
         <DropdownMenu>
