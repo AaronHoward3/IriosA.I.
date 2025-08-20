@@ -53,10 +53,7 @@ const AuthModal: React.FC = () => {
         >
           {loading ? "Sending…" : "Send magic link"}
         </GradientButton>
-
-        <p className="text-xs text-muted-foreground">
-          Make sure <code className="font-mono">{window.location.origin}</code> is added in Supabase → Authentication → URL Configuration.
-        </p>
+        
       </CardContent>
     </Card>
   );

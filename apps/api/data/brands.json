@@ -1208,5 +1208,87 @@
       "tone": ""
     },
     "updatedAt": "2025-08-14T18:51:30.462Z"
+  },
+  "kith.com": {
+    "userId": null,
+    "brand": {
+      "storeId": "kithcom",
+      "brandData": {
+        "store_name": "Kith",
+        "customHeroImage": true,
+        "store_url": "https://kith.com",
+        "logo_url": "https://media.brand.dev/4f84b927-3eda-4be5-add3-9a451d6c89ba.png",
+        "banner_url": "https://media.brand.dev/631c453a-f898-4a20-9371-b67ff1348864.png",
+        "backdrops": [
+          {
+            "url": "https://media.brand.dev/631c453a-f898-4a20-9371-b67ff1348864.png",
+            "colors": [
+              "Scattered Showers",
+              "Ruined Smores",
+              "Pinball"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/68dccb78-9121-4512-8a0b-c45869cd098d.png",
+            "colors": [
+              "Namara Grey",
+              "Raven",
+              "Moon Landing"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/ce5d3ade-59a4-4344-a416-fe921a78576d.png",
+            "colors": [
+              "Cold Grey",
+              "Shisha Coal",
+              "American Silver"
+            ],
+            "desc": "brand backdrop"
+          },
+          {
+            "url": "https://media.brand.dev/cb80fea2-9ca0-41dd-bc83-510f992b4ccd.jpg",
+            "colors": [
+              "Waiting",
+              "Dead Pixel",
+              "Silver Medal"
+            ],
+            "desc": "brand backdrop"
+          }
+        ],
+        "fonts": {
+          "title": "Helvetica",
+          "body": "Helvetica",
+          "button": "Helvetica"
+        },
+        "stock_info": null,
+        "address": null,
+        "social_links": {
+          "x": "https://x.com/kith",
+          "instagram": "https://instagram.com/kith",
+          "tiktok": "https://tiktok.com/@kith",
+          "facebook": "https://facebook.com/kithnyc",
+          "linkedin": "https://linkedin.com/company/kithnyc",
+          "youtube": "https://youtube.com/@kithmedia"
+        },
+        "button_border_style": "Rounded",
+        "header_color": "#040404",
+        "body_color": "#ffffff",
+        "link_color": "#848484",
+        "text_color": "#141414",
+        "primary_color": "#040404",
+        "button_color": "#040404",
+        "button_text_color": "#ffffff",
+        "button_border_color": "#848484",
+        "description": "Just Us is a lifestyle brand offering a wide range of apparel, footwear, and accessories for men, women, and kids. The company is closely associated with Ronnie Fieg and collaborates with Kith, a prominent streetwear brand, on various product lines including Kith Women, Kith Kids, and Kith Treats. Their product portfolio includes sneakers, boots, shoes, bags, and clothing, catering to the latest trends in streetwear and fashion.",
+        "slogan": "Giving you more than you pay for",
+        "products": []
+      },
+      "emailType": "",
+      "userContext": "",
+      "tone": ""
+    },
+    "updatedAt": "2025-08-20T04:34:13.057Z"
   }
 }
