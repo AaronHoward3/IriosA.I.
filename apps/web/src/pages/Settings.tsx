@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Moon, Sun, Pencil, Plus, X } from 'lucide-react';
+import { Moon, Sun, Pencil, Plus, X, Check } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/lib/supabaseClient';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -16,6 +16,42 @@ import { useToast } from '@/hooks/use-toast';
 type UsedBrand = { domain: string; primary_color: string | null; link_color: string | null };
 
 const API_ROOT = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+
+// ---- Plan definitions (display-only quotas; backend enforces via Stripe metadata) ----
+const PLANS = [
+  {
+    key: 'PAYG',
+    title: 'Pay As You Go',
+    priceLabel: '$9 one-time',
+    blurb: 'Simple credits pack. No renewal.',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_PAYG as string | undefined,
+    bullets: ['10 emails', '1 image', '20 revisions', '1 brand'],
+  },
+  {
+    key: 'STARTER',
+    title: 'Starter',
+    priceLabel: '$19 / mo',
+    blurb: 'For getting started with regular campaigns.',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_STARTER as string | undefined,
+    bullets: ['30 emails', '5 images', '60 revisions', '2 brands'],
+  },
+  {
+    key: 'GROWTH',
+    title: 'Growth',
+    priceLabel: '$49 / mo',
+    blurb: 'For growing teams and higher volume.',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_GROWTH as string | undefined,
+    bullets: ['120 emails', '25 images', '300 revisions', '5 brands'],
+  },
+  {
+    key: 'SCALE',
+    title: 'Scale',
+    priceLabel: '$99 / mo',
+    blurb: 'For scale and frequent iterations.',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_SCALE as string | undefined,
+    bullets: ['300 emails', '75 images', '900 revisions', '15 brands'],
+  },
+];
 
 function normalizeDomain(input: string) {
   return String(input || '')
@@ -37,13 +73,16 @@ const Settings: React.FC = () => {
   // Subscription snapshot
   const [sub, setSub] = useState<{ status?: string; price_id?: string } | null>(null);
 
-  // Brands (list + modal state)
+  // Brands
   const [usedBrands, setUsedBrands] = useState<UsedBrand[]>([]);
   const [showBrandModal, setShowBrandModal] = useState(false);
   const [brandDomain, setBrandDomain] = useState('');
   const [color1, setColor1] = useState('#4f46e5');
   const [color2, setColor2] = useState('#22d3ee');
   const isBrandValid = useMemo(() => normalizeDomain(brandDomain).length > 0, [brandDomain]);
+
+  // Plan picker
+  const [showPlanModal, setShowPlanModal] = useState(false);
 
   // --- Profile: load & save ---
   useEffect(() => {
@@ -91,15 +130,17 @@ const Settings: React.FC = () => {
     })();
   }, [user]);
 
-  const startCheckout = async (priceId?: string) => {
+  const startCheckout = async (priceId: string) => {
+    if (!priceId) {
+      toast({ title: 'Missing price', description: 'Set the VITE_STRIPE_PRICE_* env for this plan.', variant: 'destructive' });
+      return;
+    }
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
     const res = await fetch(`${API_ROOT}/api/billing/checkout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        price_id: priceId || import.meta.env.VITE_STRIPE_PRICE_STARTER,
-      }),
+      body: JSON.stringify({ price_id: priceId }),
     });
     const json = await res.json();
     if (json?.url) window.location.href = json.url;
@@ -206,7 +247,7 @@ const Settings: React.FC = () => {
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">Account Dashboard</h1>
-            <p className="text-muted-foreground mt-2">Manage your profile, preferences, and brands.</p>
+            <p className="text-muted-foreground mt-2">Manage your profile, preferences, brands, and billing.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -277,10 +318,10 @@ const Settings: React.FC = () => {
                 <CardContent className="flex gap-3 flex-wrap">
                   <GradientButton
                     variant="solid"
-                    onClick={() => startCheckout()} // defaults to VITE_STRIPE_PRICE_STARTER
+                    onClick={() => setShowPlanModal(true)}
                     className="!bg-primary !text-primary-foreground"
                   >
-                    Upgrade Plan
+                    Choose Plan
                   </GradientButton>
                   <Button variant="outline" onClick={openPortal}>Manage Billing</Button>
                 </CardContent>
@@ -300,8 +341,6 @@ const Settings: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Inline brand URL + colors removed per request */}
-
                   {usedBrands.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No brands yet. Generate an email or add a brand.</p>
                   ) : (
@@ -411,6 +450,57 @@ const Settings: React.FC = () => {
                 >
                   Save
                 </GradientButton>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Plan Picker Modal */}
+      {showPlanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <Card className="w-full max-w-5xl">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Choose a Plan</CardTitle>
+                <Button variant="ghost" size="icon" onClick={() => setShowPlanModal(false)} aria-label="Close">
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+              <CardDescription>Select the plan that fits your workflow. You can change or cancel anytime.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                {PLANS.map((p) => {
+                  const disabled = !p.priceId;
+                  return (
+                    <Card key={p.key} className="flex flex-col">
+                      <CardHeader>
+                        <CardTitle className="text-xl">{p.title}</CardTitle>
+                        <CardDescription>{p.blurb}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-1 flex flex-col">
+                        <div className="text-2xl font-semibold mb-3">{p.priceLabel}</div>
+                        <ul className="space-y-2 text-sm mb-4">
+                          {p.bullets.map((b) => (
+                            <li key={b} className="flex items-center gap-2">
+                              <Check className="h-4 w-4" />
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <GradientButton
+                          variant="solid"
+                          disabled={disabled}
+                          onClick={() => startCheckout(p.priceId!)}
+                          className="mt-auto !bg-primary !text-primary-foreground disabled:opacity-60"
+                        >
+                          {disabled ? 'Set Price ID in .env' : 'Select'}
+                        </GradientButton>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
