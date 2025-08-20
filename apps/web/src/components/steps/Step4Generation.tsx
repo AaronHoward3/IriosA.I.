@@ -1,7 +1,8 @@
-// src/pages/Step4Generation.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { FormData } from "../EmailGenerator";
 import { AnimatedBlobLoader } from "@/components/ui/AnimatedBlobLoader";
+import { supabase } from "@/lib/supabaseClient"; // ➜ added
+const API_ROOT = import.meta.env.VITE_API_URL ?? "http://localhost:3001"; // ➜ added
 
 interface Step4GenerationProps {
   formData: FormData;
@@ -36,9 +37,16 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
     const run = async () => {
       setStatus("Contacting generator…");
       try {
-        const res = await fetch("/api/generate", {
+        // ➜ added: supabase auth token
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        const res = await fetch(`${API_ROOT}/api/generate`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({
             domain: formData.domain,
             emailType: formData.emailType,
@@ -52,6 +60,14 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
           }),
           signal: controller.signal,
         });
+
+        // ➜ added: out-of-credits handling
+        if (res.status === 402) {
+          stopFake();
+          setStatus("No email credits left. Redirecting to Manage Plan…");
+          window.location.href = "/settings?plan=1";
+          return;
+        }
 
         if (!res.ok) {
           stopFake();

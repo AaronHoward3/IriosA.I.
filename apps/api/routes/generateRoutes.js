@@ -1,8 +1,12 @@
-import express from "express";
+// apps/api/routes/generateRoutes.js
+import { Router } from "express";
+import { requireAuth } from "../middleware/requireAuth.js";
+import { requireEmailCredit } from "../middleware/credits.js";
 import { generateEmails } from "../controllers/generateController.js";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/", generateEmails);
+// POST /api/generate
+router.post("/", requireAuth, requireEmailCredit, generateEmails);
 
 export default router;

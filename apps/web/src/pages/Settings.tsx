@@ -15,6 +15,14 @@ import { useToast } from '@/hooks/use-toast';
 
 type UsedBrand = { domain: string; primary_color: string | null; link_color: string | null };
 
+type Credits = {
+  emails_remaining: number;
+  images_remaining: number;
+  revisions_remaining: number;
+  brand_limit: number | null;
+  updated_at: string | null;
+};
+
 const API_ROOT = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 // ---- Plan definitions (display-only quotas; backend enforces via Stripe metadata) ----
@@ -26,6 +34,7 @@ const PLANS = [
     blurb: 'Simple credits pack. No renewal.',
     priceId: import.meta.env.VITE_STRIPE_PRICE_PAYG as string | undefined,
     bullets: ['10 emails', '1 image', '20 revisions', '1 brand'],
+    quotas: { emails: 10, images: 1, revisions: 20, brands: 1 },
   },
   {
     key: 'STARTER',
@@ -34,6 +43,7 @@ const PLANS = [
     blurb: 'For getting started with regular campaigns.',
     priceId: import.meta.env.VITE_STRIPE_PRICE_STARTER as string | undefined,
     bullets: ['30 emails', '5 images', '60 revisions', '2 brands'],
+    quotas: { emails: 30, images: 5, revisions: 60, brands: 2 },
   },
   {
     key: 'GROWTH',
@@ -42,6 +52,7 @@ const PLANS = [
     blurb: 'For growing teams and higher volume.',
     priceId: import.meta.env.VITE_STRIPE_PRICE_GROWTH as string | undefined,
     bullets: ['120 emails', '25 images', '300 revisions', '5 brands'],
+    quotas: { emails: 120, images: 25, revisions: 300, brands: 5 },
   },
   {
     key: 'SCALE',
@@ -50,6 +61,7 @@ const PLANS = [
     blurb: 'For scale and frequent iterations.',
     priceId: import.meta.env.VITE_STRIPE_PRICE_SCALE as string | undefined,
     bullets: ['300 emails', '75 images', '900 revisions', '15 brands'],
+    quotas: { emails: 300, images: 75, revisions: 900, brands: 15 },
   },
 ];
 
@@ -61,6 +73,54 @@ function normalizeDomain(input: string) {
     .replace(/\/.*$/, '');
 }
 
+const priceToPlanKey: Record<string, 'PAYG' | 'STARTER' | 'GROWTH' | 'SCALE'> = {
+  [import.meta.env.VITE_STRIPE_PRICE_PAYG || '']: 'PAYG',
+  [import.meta.env.VITE_STRIPE_PRICE_STARTER || '']: 'STARTER',
+  [import.meta.env.VITE_STRIPE_PRICE_GROWTH || '']: 'GROWTH',
+  [import.meta.env.VITE_STRIPE_PRICE_SCALE || '']: 'SCALE',
+};
+
+function quotasFor(key: 'PAYG' | 'STARTER' | 'GROWTH' | 'SCALE' | 'FREE') {
+  if (key === 'FREE') return { emails: 0, images: 0, revisions: 0, brands: 0 };
+  const found = PLANS.find(p => p.key === key);
+  return found?.quotas ?? { emails: 0, images: 0, revisions: 0, brands: 0 };
+}
+
+function pct(rem: number, total: number) {
+  if (total <= 0) return 0;
+  const v = Math.max(0, Math.min(1, rem / total));
+  return Math.round(v * 100);
+}
+
+const Bar: React.FC<{ label: string; remaining: number; total: number; className?: string }> = ({ label, remaining, total, className }) => {
+  const percent = pct(remaining, total);
+  const used = total > 0 ? total - remaining : 0;
+  return (
+    <div className={className}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium">{label}</span>
+        {total > 0 ? (
+          <span className="text-xs text-muted-foreground">{remaining} / {total}</span>
+        ) : (
+          <span className="text-xs text-muted-foreground">{remaining} remaining</span>
+        )}
+      </div>
+      <div className="w-full h-2 rounded bg-muted overflow-hidden">
+        <div
+          className="h-2 bg-primary transition-all"
+          style={{ width: `${percent}%` }}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={percent}
+        />
+      </div>
+      {total > 0 && used > 0 && (
+        <div className="mt-1 text-[11px] text-muted-foreground">{used} used</div>
+      )}
+    </div>
+  );
+};
+
 const Settings: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user } = useSupabaseAuth();
@@ -71,7 +131,11 @@ const Settings: React.FC = () => {
   const [emailField, setEmailField] = useState('');
 
   // Subscription snapshot
-  const [sub, setSub] = useState<{ status?: string; price_id?: string } | null>(null);
+  const [sub, setSub] = useState<{ status?: string; price_id?: string; current_period_end?: string } | null>(null);
+
+  // Credits snapshot
+  const [credits, setCredits] = useState<Credits | null>(null);
+  const [brandCount, setBrandCount] = useState<number>(0);
 
   // Brands
   const [usedBrands, setUsedBrands] = useState<UsedBrand[]>([]);
@@ -123,10 +187,27 @@ const Settings: React.FC = () => {
     (async () => {
       const { data } = await supabase
         .from('subscriptions')
-        .select('status, price_id')
+        .select('status, price_id, current_period_end')
         .eq('user_id', user.id)
         .maybeSingle();
       setSub(data ?? null);
+    })();
+  }, [user]);
+
+  // --- Credits snapshot ---
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch(`${API_ROOT}/api/credits/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setCredits(json.balance as Credits);
+        setBrandCount(json.brand_count as number);
+      }
     })();
   }, [user]);
 
@@ -145,18 +226,6 @@ const Settings: React.FC = () => {
     const json = await res.json();
     if (json?.url) window.location.href = json.url;
     else toast({ title: 'Checkout error', description: json?.error || 'Unable to start checkout', variant: 'destructive' });
-  };
-
-  const openPortal = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    const res = await fetch(`${API_ROOT}/api/billing/portal`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const json = await res.json();
-    if (json?.url) window.location.href = json.url;
-    else toast({ title: 'Portal error', description: json?.error || 'Unable to open billing portal', variant: 'destructive' });
   };
 
   // --- Brands: load list (user's used domains) + join brand_cache for colors ---
@@ -240,6 +309,29 @@ const Settings: React.FC = () => {
     }
   };
 
+  // --- Derive current plan label & total quotas for progress bars ---
+  const planKey: 'FREE' | 'PAYG' | 'STARTER' | 'GROWTH' | 'SCALE' = useMemo(() => {
+    // 1) Manual flag, e.g., 'manual:starter'
+    const pid = sub?.price_id || '';
+    if (pid.startsWith('manual:')) {
+      const k = pid.split(':')[1]?.toUpperCase();
+      if (k === 'STARTER' || k === 'GROWTH' || k === 'SCALE') return k;
+    }
+    // 2) Match known Stripe price ids
+    const mapped = priceToPlanKey[pid];
+    if (mapped) return mapped;
+    // 3) No active sub but has balances => treat as PAYG pack
+    if (!sub?.status || sub.status !== 'active') {
+      if ((credits?.emails_remaining || 0) > 0 || (credits?.images_remaining || 0) > 0 || (credits?.revisions_remaining || 0) > 0) {
+        return 'PAYG';
+      }
+    }
+    // 4) Default
+    return sub?.status === 'active' ? 'STARTER' : 'FREE';
+  }, [sub?.price_id, sub?.status, credits?.emails_remaining, credits?.images_remaining, credits?.revisions_remaining]);
+
+  const totals = quotasFor(planKey);
+
   return (
     <>
       <Navigation />
@@ -291,39 +383,63 @@ const Settings: React.FC = () => {
             <div className="lg:col-span-8 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Appearance</CardTitle>
-                  <CardDescription>Customize how the application looks and feels.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                      <Label htmlFor="dark-mode">Dark Mode</Label>
-                    </div>
-                    <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    Subscription
-                    <Badge variant={sub?.status === 'active' ? 'default' : 'secondary'}>
-                      {sub?.status ? sub.status : 'Free Plan'}
-                    </Badge>
+                    <span>Subscription</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={sub?.status === 'active' ? 'default' : 'secondary'}>
+                        {sub?.status ? sub.status : 'Free Plan'}
+                      </Badge>
+                      <Badge variant="outline">
+                        Current: {planKey === 'FREE' ? 'Free' : planKey === 'PAYG' ? 'Credits Pack' : planKey.charAt(0) + planKey.slice(1).toLowerCase()}
+                      </Badge>
+                    </div>
                   </CardTitle>
-                  <CardDescription>Your current subscription plan and billing information.</CardDescription>
+                  <CardDescription>Your current subscription and usage.</CardDescription>
                 </CardHeader>
-                <CardContent className="flex gap-3 flex-wrap">
-                  <GradientButton
-                    variant="solid"
-                    onClick={() => setShowPlanModal(true)}
-                    className="!bg-primary !text-primary-foreground"
-                  >
-                    Choose Plan
-                  </GradientButton>
-                  <Button variant="outline" onClick={openPortal}>Manage Billing</Button>
+                <CardContent className="space-y-6">
+                  {/* Credits bars */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Bar
+                      label="Emails"
+                      remaining={credits?.emails_remaining ?? 0}
+                      total={totals.emails}
+                    />
+                    <Bar
+                      label="Images"
+                      remaining={credits?.images_remaining ?? 0}
+                      total={totals.images}
+                    />
+                    <Bar
+                      label="Revisions"
+                      remaining={credits?.revisions_remaining ?? 0}
+                      total={totals.revisions}
+                    />
+                    <Bar
+                      label="Brands"
+                      remaining={(credits?.brand_limit ?? 0) - (brandCount ?? 0) >= 0
+                        ? (credits?.brand_limit ?? 0) - (brandCount ?? 0)
+                        : 0}
+                      total={totals.brands}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Used brands: {brandCount} {credits?.brand_limit != null ? `/ ${credits.brand_limit}` : ''}</span>
+                    {sub?.current_period_end && (
+                      <span>Renews: {new Date(sub.current_period_end).toLocaleDateString()}</span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <GradientButton
+                      variant="solid"
+                      onClick={() => setShowPlanModal(true)}
+                      className="!bg-primary !text-primary-foreground"
+                    >
+                      Manage Plan
+                    </GradientButton>
+                    {/* Removed Manage Billing button per request */}
+                  </div>
                 </CardContent>
               </Card>
 

@@ -3,8 +3,10 @@ import { motion, easeOut } from 'framer-motion';
 import { FormData } from '../EmailGenerator';
 import { ArrowRight } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
-
+import { supabase } from '@/lib/supabaseClient'; // ➜ added
 import Background from "../Background.tsx"; // ✅ uses the blobs variant below
+
+const API_ROOT = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'; // ➜ added
 
 interface Step1DomainProps {
   formData: FormData;
@@ -38,7 +40,8 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
     setIsLoading(true);
 
     try {
-      const brandRes = await fetch(`/api/brand/check`, {
+      // brand check (unchanged design, updated URL)
+      const brandRes = await fetch(`${API_ROOT}/api/brand/check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: domain.trim() }),
@@ -46,13 +49,33 @@ export const Step1Domain: React.FC<Step1DomainProps> = ({
       if (!brandRes.ok) throw new Error('Failed to fetch brand');
       const brandData = await brandRes.json();
 
-      const productRes = await fetch(`/api/products/scrape`, {
+      // product scrape (unchanged design, updated URL)
+      const productRes = await fetch(`${API_ROOT}/api/products/scrape`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: domain.trim() }),
       });
       if (!productRes.ok) throw new Error('Failed to fetch products');
       const productSuggestions = await productRes.json();
+
+      // ➜ added: claim brand against user's limit (redirect on 402)
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        if (token) {
+          const claimRes = await fetch(`${API_ROOT}/api/credits/claim-brand`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ domain: domain.trim() }),
+          });
+          if (claimRes.status === 402) {
+            window.location.href = '/settings?plan=1';
+            return;
+          }
+        }
+      } catch {
+        // non-fatal, keep going
+      }
 
       updateFormData({
         domain: domain.trim(),
