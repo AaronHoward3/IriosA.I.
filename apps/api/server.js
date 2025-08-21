@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import creditsRoutes from "./routes/creditsRoutes.js";
+import imagesRoutes from "./routes/imagesRoutes.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/generate", generateRoutes);
 app.use("/api", billingRoutes);
 app.use("/api", creditsRoutes);
+app.use("/api", imagesRoutes);
 
 // ---- Route list ----
 console.log("\n📡 Available Routes:");

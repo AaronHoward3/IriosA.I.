@@ -2,6 +2,7 @@ import { getStoredBrand } from "../utils/dataStore.js";
 import mjml2html from "mjml";
 import path from "node:path";
 import fs from "node:fs/promises";
+import { storeUserImageFromUrl, storeUserImageFromDataUrl } from "./imagesController.js";
 
 function normalizeDomain(input) {
   return (input || "")
@@ -52,6 +53,8 @@ export async function generateEmails(req, res) {
     customHeroImage,
     designAesthetic,
     products,
+    // if user reuses an existing image, client may send this
+    savedHeroImageId, // not used here, but middleware uses it to avoid charging
   } = req.body;
 
   if (!domain) {
@@ -142,12 +145,34 @@ export async function generateEmails(req, res) {
       return { ...email, html };
     });
 
+    // ---- NEW: best-effort save of first hero image for this user & brand ----
+    let savedHero = null;
+    try {
+      const uid = req.user?.id; // set by requireAuth
+      const firstHtml = htmlEmails?.[0]?.html || "";
+      // naive first <img> src extraction
+      const m = firstHtml.match(/<img[^>]+src=["']([^"']+)["']/i);
+      const src = m?.[1];
+
+      if (uid && normalizedDomain && src) {
+        if (src.startsWith("data:")) {
+          savedHero = await storeUserImageFromDataUrl({ userId: uid, domain: normalizedDomain, dataUrl: src });
+        } else if (/^https?:\/\//i.test(src)) {
+          savedHero = await storeUserImageFromUrl({ userId: uid, domain: normalizedDomain, url: src });
+        }
+      }
+    } catch (e) {
+      console.warn("Hero image save skipped:", e?.message || e);
+    }
+    // -----------------------------------------------------------------------
+
     console.log(`[generateController] Total request time: ${Date.now() - startTime} ms`);
     return res.json({
       success: true,
       subjectLine: generated.subjectLine || generated.subject || (htmlEmails[0]?.subject ?? ""),
       totalTokens: generated.totalTokens,
       emails: htmlEmails,
+      savedHeroImage: savedHero ? { id: savedHero.id, url: savedHero.public_url } : null,
       debug: { colorsSent: resolved },
     });
   } catch (err) {
