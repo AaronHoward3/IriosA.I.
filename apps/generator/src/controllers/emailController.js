@@ -52,7 +52,19 @@ export async function generateEmails(req, res) {
       return res.status(400).json(err);
     }
 
-    let { brandData, emailType, userContext, imageContext, storeId, designAesthetic, styleId } = req.body;
+    let {
+      brandData,
+      emailType,
+      userContext,
+      imageContext,
+      storeId,
+      designAesthetic,
+      styleId,
+
+      // NEW: optional saved image injection
+      savedHeroImageUrl, // string http(s) URL of a previously saved brand image
+    } = req.body;
+
     if (!brandData || !emailType) {
       const err = { error: "Missing brandData or emailType in request body." };
       if (streaming) { sseSend(res, "error", err); if (hb) clearInterval(hb); sseClose(res); return; }
@@ -82,10 +94,27 @@ export async function generateEmails(req, res) {
 
     const jobId = `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
 
-    const wantsCustomHero = brandData.customHeroImage === true;
+    // Determine which hero mode we're in:
+    // 1) Generate a brand-new custom image (existing path)
+    // 2) Inject a previously saved image URL (new path)
+    const wantsSavedHero =
+      typeof savedHeroImageUrl === "string" &&
+      /^https?:\/\//i.test(savedHeroImageUrl.trim());
+
+    // If a saved image is supplied, it wins (we do NOT generate a new image)
+    const wantsCustomHero = !wantsSavedHero && brandData.customHeroImage === true;
+
+    // Prepare placeholders so downstream templates point at a stable token
     if (wantsCustomHero) {
       brandData.primary_custom_hero_image_banner = "https://CUSTOMHEROIMAGE.COM";
       brandData.hero_image_url = "https://CUSTOMHEROIMAGE.COM";
+    }
+
+    // NEW: saved image placeholder
+    if (wantsSavedHero) {
+      // Ensure we don't accidentally kick off generation
+      brandData.customHeroImage = false;
+      brandData.hero_image_url = "https://SAVEDHEROIMAGE.COM";
     }
 
     // Fallback header image
@@ -94,6 +123,7 @@ export async function generateEmails(req, res) {
         ? brandData.banner_url
         : brandData.logo_url || "";
 
+    // Generate (or skip) hero
     if (wantsCustomHero) send("hero:start", {});
     const heroPromise = wantsCustomHero
       ? Promise.race([
@@ -144,10 +174,13 @@ export async function generateEmails(req, res) {
       </mj-head>
     `;
 
+    let heroImageUrlUsed = null; // NEW: expose the actual url used back to caller
+
     (stored || []).forEach((mjmlStr, index) => {
       if (!mjmlStr) return;
       let updated = mjmlStr;
 
+      // EXISTING: replace placeholder with newly generated custom hero
       if (
         finalBrandData.customHeroImage === true &&
         finalBrandData.hero_image_url &&
@@ -156,6 +189,14 @@ export async function generateEmails(req, res) {
       ) {
         updated = updated.replace(/src="https:\/\/CUSTOMHEROIMAGE\.COM"/g, `src="${finalBrandData.hero_image_url}"`);
         updated = updated.replace(/background-url="https:\/\/CUSTOMHEROIMAGE\.COM"/g, `background-url="${finalBrandData.hero_image_url}"`);
+        heroImageUrlUsed = finalBrandData.hero_image_url; // NEW
+      }
+
+      // NEW: replace placeholder with a previously SAVED image url
+      if (wantsSavedHero) {
+        updated = updated.replace(/src="https:\/\/SAVEDHEROIMAGE\.COM"/g, `src="${savedHeroImageUrl}"`);
+        updated = updated.replace(/background-url="https:\/\/SAVEDHEROIMAGE\.COM"/g, `background-url="${savedHeroImageUrl}"`);
+        heroImageUrlUsed = savedHeroImageUrl;
       }
 
       if (!updated.includes("<mj-head>")) {
@@ -174,6 +215,11 @@ export async function generateEmails(req, res) {
     });
 
     const mjmlOut = (getMJML(jobId) || [])[0] || refinedMjml;
+
+    // Let the client know which image ended up being used
+    if (streaming && heroImageUrlUsed) {
+      sseSend(res, "hero:used", { url: heroImageUrlUsed, source: wantsSavedHero ? "saved" : "generated" });
+    }
 
     const subjectLine = await generateSubjectLine({
       brandData: finalBrandData,
@@ -201,7 +247,7 @@ export async function generateEmails(req, res) {
 
     if (streaming) {
       sseSend(res, "metrics", summary);
-      sseSend(res, "result", { subjectLine, mjml: mjmlOut, styleUsed });
+      sseSend(res, "result", { subjectLine, mjml: mjmlOut, styleUsed, heroImageUrlUsed }); // NEW
       sseSend(res, "done", {});
       if (hb) clearInterval(hb);
       sseClose(res);
@@ -213,6 +259,7 @@ export async function generateEmails(req, res) {
     if (wantsMjml && mjmlOut) {
       res.setHeader("Content-Type", "text/mjml");
       res.setHeader("X-Subject-Line", subjectLine);
+      if (heroImageUrlUsed) res.setHeader("X-Hero-Image-Url-Used", heroImageUrlUsed); // NEW
       return res.send(mjmlOut);
     }
 
@@ -226,7 +273,8 @@ export async function generateEmails(req, res) {
       totalMs: summary.totalMs,
       usage: summary.usage,
       costsUSD: summary.costsUSD,
-      requestId: summary.requestId
+      requestId: summary.requestId,
+      heroImageUrlUsed, // NEW: so API can persist it for the brand card
     });
   } catch (error) {
     if (streaming) {

@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FormData } from "../EmailGenerator";
 import { AnimatedBlobLoader } from "@/components/ui/AnimatedBlobLoader";
-import { supabase } from "@/lib/supabaseClient"; // ➜ added earlier
-const API_ROOT = import.meta.env.VITE_API_URL ?? "http://localhost:3001"; // ➜ added earlier
+import { supabase } from "@/lib/supabaseClient";
+const API_ROOT = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 interface Step4GenerationProps {
   formData: FormData;
@@ -24,8 +24,11 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
     const controller = new AbortController();
     abortRef.current = controller;
 
+    // If we have a saved image URL, treat as "no custom hero generation" for progress timing.
+    const useCustomHeroEffective = !!(formData as any).useCustomHero && !(formData as any).savedHeroImageUrl;
+
     const stopFake = startFakeProgress({
-      useCustomHero: !!(formData as any).useCustomHero,
+      useCustomHero: useCustomHeroEffective,
       setStatus,
       timersRef,
     });
@@ -53,7 +56,9 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
             products: formData.products || [],
             brandData: (formData as any).brandData || {},
             customHeroImage: (formData as any).useCustomHero ?? true,
-            savedHeroImageId: (formData as any).savedHeroImageId || null, // ➜ NEW: enables “reuse image” (no image credit)
+            savedHeroImageUrl: (formData as any).savedHeroImageUrl || null, // NEW: backend uses this to inject
+            // kept for future compatibility if you ever resolve by id:
+            savedHeroImageId: (formData as any).savedHeroImageId || null,
           }),
           signal: controller.signal,
         });
@@ -135,10 +140,7 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-background overflow-hidden">
-      <h1
-        className="text-2xl font-normal text-gray-100 z-10 text-center"
-        style={{ textShadow: "0 2px 10px rgba(0, 0, 0, 0.8)" }}
-      >
+      <h1 className="text-2xl font-normal text-gray-100 z-10 text-center" style={{ textShadow: "0 2px 10px rgba(0, 0, 0, 0.8)" }}>
         Generating your email...
       </h1>
       <p className="text-sm text-gray-400 animate-pulse mt-2 z-10">{status}</p>
@@ -147,7 +149,6 @@ export const Step4Generation: React.FC<Step4GenerationProps> = ({
   );
 };
 
-/* fake progress engine unchanged... */
 function startFakeProgress({ useCustomHero, setStatus, timersRef }) {
   const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
   const addTimer = (ms, fn) => {

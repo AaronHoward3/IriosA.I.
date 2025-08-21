@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Moon, Sun, Pencil, Plus, X, Check } from 'lucide-react';
+import { Pencil, X, Check, Copy } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/lib/supabaseClient';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -23,9 +22,18 @@ type Credits = {
   updated_at: string | null;
 };
 
+type SavedImage = {
+  id: string;
+  public_url: string;
+  path: string;
+  created_at: string;
+  width?: number | null;
+  height?: number | null;
+};
+
 const API_ROOT = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
-// ---- Plan definitions (display-only quotas; backend enforces via Stripe metadata) ----
+// ---- Plan definitions ----
 const PLANS = [
   {
     key: 'PAYG',
@@ -122,7 +130,6 @@ const Bar: React.FC<{ label: string; remaining: number; total: number; className
 };
 
 const Settings: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
   const { user } = useSupabaseAuth();
   const { toast } = useToast();
 
@@ -137,15 +144,18 @@ const Settings: React.FC = () => {
   const [credits, setCredits] = useState<Credits | null>(null);
   const [brandCount, setBrandCount] = useState<number>(0);
 
-  // Brands
+  // Brands + saved images
   const [usedBrands, setUsedBrands] = useState<UsedBrand[]>([]);
+  const [imagesByDomain, setImagesByDomain] = useState<Record<string, SavedImage[]>>({});
+
+  // Edit brand modal
   const [showBrandModal, setShowBrandModal] = useState(false);
   const [brandDomain, setBrandDomain] = useState('');
   const [color1, setColor1] = useState('#4f46e5');
   const [color2, setColor2] = useState('#22d3ee');
   const isBrandValid = useMemo(() => normalizeDomain(brandDomain).length > 0, [brandDomain]);
 
-  // Plan picker
+  // Plan picker modal
   const [showPlanModal, setShowPlanModal] = useState(false);
 
   // --- Profile: load & save ---
@@ -228,57 +238,68 @@ const Settings: React.FC = () => {
     else toast({ title: 'Checkout error', description: json?.error || 'Unable to start checkout', variant: 'destructive' });
   };
 
-  // --- Brands: load list (user's used domains) + join brand_cache for colors ---
+  // --- Brands list + colors ---
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: domainsRows, error: dErr } = await supabase
+      const { data: domainsRows } = await supabase
         .from('emails')
         .select('brand_domain')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-      if (dErr) return;
 
       const domains = Array.from(
-        new Set(
-          (domainsRows || [])
-            .map((r: any) => normalizeDomain(r?.brand_domain || ''))
-            .filter(Boolean)
-        )
+        new Set((domainsRows || [])
+          .map((r: any) => normalizeDomain(r?.brand_domain || ''))
+          .filter(Boolean))
       );
+
       if (domains.length === 0) {
         setUsedBrands([]);
+        setImagesByDomain({});
         return;
       }
 
-      const { data: cacheRows, error: cErr } = await supabase
+      const { data: cacheRows } = await supabase
         .from('brand_cache')
         .select('domain, primary_color, link_color')
         .in('domain', domains);
-      if (cErr) return;
 
-      setUsedBrands(
-        (cacheRows || []).map((r: any) => ({
-          domain: r.domain,
-          primary_color: r.primary_color ?? null,
-          link_color: r.link_color ?? null,
-        }))
-      );
+      const brands = (cacheRows || []).map((r: any) => ({
+        domain: r.domain,
+        primary_color: r.primary_color ?? null,
+        link_color: r.link_color ?? null,
+      }));
+
+      setUsedBrands(brands);
+
+      // fetch saved images per brand
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const imagesMap: Record<string, SavedImage[]> = {};
+      for (const b of brands) {
+        try {
+          const resp = await fetch(`${API_ROOT}/api/images?domain=${encodeURIComponent(b.domain)}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+          if (!resp.ok) continue;
+          const json = await resp.json();
+          imagesMap[b.domain] = json?.images || [];
+        } catch {
+          // ignore
+        }
+      }
+      setImagesByDomain(imagesMap);
     })();
   }, [user]);
 
-  // --- Brand modal handlers ---
   const openBrandModal = (brand?: UsedBrand) => {
     if (brand) {
       setBrandDomain(brand.domain);
       setColor1(brand.primary_color || '#4f46e5');
       setColor2(brand.link_color || '#22d3ee');
-    } else {
-      setBrandDomain('');
-      setColor1('#4f46e5');
-      setColor2('#22d3ee');
+      setShowBrandModal(true);
     }
-    setShowBrandModal(true);
   };
 
   const closeBrandModal = () => setShowBrandModal(false);
@@ -296,12 +317,9 @@ const Settings: React.FC = () => {
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || 'Failed to update brand colors');
 
-      setUsedBrands((prev) => {
-        const exists = prev.some((b) => b.domain === domain);
-        const updated = { domain, primary_color: color1, link_color: color2 };
-        return exists ? prev.map((b) => (b.domain === domain ? updated : b)) : [updated, ...prev];
-      });
-
+      setUsedBrands((prev) =>
+        prev.map((b) => (b.domain === domain ? { ...b, primary_color: color1, link_color: color2 } : b))
+      );
       toast({ title: 'Brand colors updated', description: domain });
       closeBrandModal();
     } catch (e: any) {
@@ -309,28 +327,31 @@ const Settings: React.FC = () => {
     }
   };
 
-  // --- Derive current plan label & total quotas for progress bars ---
+  // Plan/usage helpers
   const planKey: 'FREE' | 'PAYG' | 'STARTER' | 'GROWTH' | 'SCALE' = useMemo(() => {
-    // 1) Manual flag, e.g., 'manual:starter'
     const pid = sub?.price_id || '';
     if (pid.startsWith('manual:')) {
       const k = pid.split(':')[1]?.toUpperCase();
-      if (k === 'STARTER' || k === 'GROWTH' || k === 'SCALE') return k;
+      if (k === 'STARTER' || k === 'GROWTH' || k === 'SCALE') return k as any;
     }
-    // 2) Match known Stripe price ids
     const mapped = priceToPlanKey[pid];
     if (mapped) return mapped;
-    // 3) No active sub but has balances => treat as PAYG pack
     if (!sub?.status || sub.status !== 'active') {
       if ((credits?.emails_remaining || 0) > 0 || (credits?.images_remaining || 0) > 0 || (credits?.revisions_remaining || 0) > 0) {
         return 'PAYG';
       }
     }
-    // 4) Default
     return sub?.status === 'active' ? 'STARTER' : 'FREE';
   }, [sub?.price_id, sub?.status, credits?.emails_remaining, credits?.images_remaining, credits?.revisions_remaining]);
 
   const totals = quotasFor(planKey);
+
+  const copy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({ title: 'Copied URL to clipboard' });
+    } catch {}
+  };
 
   return (
     <>
@@ -370,50 +391,15 @@ const Settings: React.FC = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Account Security</CardTitle>
-                  <CardDescription>Manage your account security settings.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="outline" disabled>Change Password</Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* RIGHT COLUMN */}
-            <div className="lg:col-span-8 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Subscription</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={sub?.status === 'active' ? 'default' : 'secondary'}>
-                        {sub?.status ? sub.status : 'Free Plan'}
-                      </Badge>
-                      <Badge variant="outline">
-                        Current: {planKey === 'FREE' ? 'Free' : planKey === 'PAYG' ? 'Credits Pack' : planKey.charAt(0) + planKey.slice(1).toLowerCase()}
-                      </Badge>
-                    </div>
-                  </CardTitle>
+                  <CardTitle>Subscription</CardTitle>
                   <CardDescription>Your current subscription and usage.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Credits bars */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Bar
-                      label="Emails"
-                      remaining={credits?.emails_remaining ?? 0}
-                      total={totals.emails}
-                    />
-                    <Bar
-                      label="Images"
-                      remaining={credits?.images_remaining ?? 0}
-                      total={totals.images}
-                    />
-                    <Bar
-                      label="Revisions"
-                      remaining={credits?.revisions_remaining ?? 0}
-                      total={totals.revisions}
-                    />
+                    <Bar label="Emails" remaining={credits?.emails_remaining ?? 0} total={totals.emails} />
+                    <Bar label="Images" remaining={credits?.images_remaining ?? 0} total={totals.images} />
+                    <Bar label="Revisions" remaining={credits?.revisions_remaining ?? 0} total={totals.revisions} />
                     <Bar
                       label="Brands"
                       remaining={(credits?.brand_limit ?? 0) - (brandCount ?? 0) >= 0
@@ -438,67 +424,97 @@ const Settings: React.FC = () => {
                     >
                       Manage Plan
                     </GradientButton>
-                    {/* Removed Manage Billing button per request */}
                   </div>
                 </CardContent>
               </Card>
+            </div>
 
+            {/* RIGHT COLUMN */}
+            <div className="lg:col-span-8 space-y-6">
               {/* Brands */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>Brands</span>
-                    <Button size="sm" variant="outline" onClick={() => openBrandModal()}>
-                      <Plus className="h-4 w-4 mr-1" /> Add Brand
-                    </Button>
+                    {/* Removed "Add Brand" button by request */}
                   </CardTitle>
-                  <CardDescription>
-                    Brands you’ve used will appear here. Click edit to update the global brand cache.
-                  </CardDescription>
+                  <CardDescription>Brands you’ve used appear here. Edit to tweak cached colors.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {usedBrands.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No brands yet. Generate an email or add a brand.</p>
+                    <p className="text-sm text-muted-foreground">No brands yet. Generate an email to see brands here.</p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {usedBrands.map((b) => (
-                        <Card key={b.domain} className="overflow-hidden">
-                          <div
-                            className="h-20 w-full"
-                            style={{
-                              backgroundImage: `linear-gradient(90deg, ${b.primary_color || '#4f46e5'}, ${b.link_color || '#22d3ee'})`,
-                            }}
-                          />
-                          <CardContent className="pt-4">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <p className="text-sm font-medium truncate">{b.domain}</p>
-                                <div className="mt-2 flex items-center gap-2">
-                                  <span
-                                    className="inline-block h-4 w-4 rounded"
-                                    style={{ backgroundColor: b.primary_color || '#4f46e5' }}
-                                  />
-                                  <span
-                                    className="inline-block h-4 w-4 rounded"
-                                    style={{ backgroundColor: b.link_color || '#22d3ee' }}
-                                  />
-                                  <span className="text-xs text-muted-foreground">
-                                    {(b.primary_color || '#4f46e5').toUpperCase()} → {(b.link_color || '#22d3ee').toUpperCase()}
-                                  </span>
+                      {usedBrands.map((b) => {
+                        const imgs = imagesByDomain[b.domain] || [];
+                        return (
+                          <Card key={b.domain} className="overflow-hidden">
+                            <div
+                              className="h-20 w-full"
+                              style={{
+                                backgroundImage: `linear-gradient(90deg, ${b.primary_color || '#4f46e5'}, ${b.link_color || '#22d3ee'})`,
+                              }}
+                            />
+                            <CardContent className="pt-4 space-y-3">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium truncate">{b.domain}</p>
+                                  <div className="mt-2 flex items-center gap-2">
+                                    <span
+                                      className="inline-block h-4 w-4 rounded"
+                                      style={{ backgroundColor: b.primary_color || '#4f46e5' }}
+                                    />
+                                    <span
+                                      className="inline-block h-4 w-4 rounded"
+                                      style={{ backgroundColor: b.link_color || '#22d3ee' }}
+                                    />
+                                    <span className="text-xs text-muted-foreground">
+                                      {(b.primary_color || '#4f46e5').toUpperCase()} → {(b.link_color || '#22d3ee').toUpperCase()}
+                                    </span>
+                                  </div>
                                 </div>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => openBrandModal(b)}
+                                  aria-label="Edit brand"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
                               </div>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => openBrandModal(b)}
-                                aria-label="Edit brand"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+
+                              {/* Saved Images Gallery */}
+                              <div className="space-y-2">
+                                <div className="text-xs text-muted-foreground">Saved images</div>
+                                {imgs.length === 0 ? (
+                                  <div className="text-xs text-muted-foreground italic">None yet — generate or reuse a hero image to save it here.</div>
+                                ) : (
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {imgs.slice(0, 4).map((img) => (
+                                      <div key={img.id} className="border border-border rounded-lg p-2">
+                                        <img
+                                          src={img.public_url}
+                                          alt="Saved"
+                                          className="w-full h-24 object-cover rounded"
+                                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }}
+                                        />
+                                        <div className="mt-2 text-[11px] break-all text-muted-foreground">
+                                          {img.public_url}
+                                        </div>
+                                        <div className="mt-1 flex justify-end">
+                                          <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => copy(img.public_url)}>
+                                            <Copy className="w-3.5 h-3.5 mr-1" /> Copy URL
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
@@ -508,30 +524,23 @@ const Settings: React.FC = () => {
         </div>
       </div>
 
-      {/* Brand Edit / Add Modal */}
+      {/* Brand Edit Modal (kept for editing colors; no add button anymore) */}
       {showBrandModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <Card className="w-full max-w-lg">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>
-                  {usedBrands.some((b) => b.domain === normalizeDomain(brandDomain)) ? 'Edit Brand' : 'Add Brand'}
-                </CardTitle>
+                <CardTitle>Edit Brand</CardTitle>
                 <Button variant="ghost" size="icon" onClick={closeBrandModal} aria-label="Close">
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-              <CardDescription>Update the domain and colors, then save to the global cache.</CardDescription>
+              <CardDescription>Update cached colors for this domain.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="brand-domain">Brand URL / Domain</Label>
-                <Input
-                  id="brand-domain"
-                  placeholder="gfuel.com"
-                  value={brandDomain}
-                  onChange={(e) => setBrandDomain(e.target.value)}
-                />
+                <Label htmlFor="brand-domain">Brand domain</Label>
+                <Input id="brand-domain" value={brandDomain} onChange={(e) => setBrandDomain(e.target.value)} disabled />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
