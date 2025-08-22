@@ -1,10 +1,10 @@
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+export type Theme = 'light' | 'dark';
 
-type Theme = 'light' | 'dark';
-
-interface ThemeContextType {
+export interface ThemeContextType {
   theme: Theme;
+  setTheme: (t: Theme) => void;   // ✅ added
   toggleTheme: () => void;
 }
 
@@ -24,29 +24,32 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check if there's a saved theme in localStorage
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      return savedTheme;
+    try {
+      const saved = localStorage.getItem('theme') as Theme | null;
+      if (saved === 'light' || saved === 'dark') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    } catch {
+      // ignore
     }
-    // Check system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return 'light';
   });
 
   useEffect(() => {
-    const root = window.document.documentElement;
+    const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
-    localStorage.setItem('theme', theme);
+    try {
+      localStorage.setItem('theme', theme);
+    } catch {
+      // ignore
+    }
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme]);
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };

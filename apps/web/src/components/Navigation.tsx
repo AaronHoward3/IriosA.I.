@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, User } from "lucide-react";
@@ -8,6 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { supabase } from "@/lib/supabaseClient";
 
 interface NavigationProps {
   onHomeClick?: () => void;
@@ -16,10 +18,31 @@ interface NavigationProps {
 const Navigation: React.FC<NavigationProps> = ({ onHomeClick }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useSupabaseAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const isOnGenerator = location.pathname.startsWith("/generator");
   const isSettings = location.pathname === "/settings";
   const isMyEmails = location.pathname === "/my-emails";
+  const isAdminPage = location.pathname === "/admin";
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadRole() {
+      if (!user?.id) {
+        if (!cancelled) setIsAdmin(false);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!cancelled) setIsAdmin(Boolean(data?.is_admin) && !error);
+    }
+    loadRole();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const handleHomeClick = () => {
     if (onHomeClick) {
@@ -44,14 +67,13 @@ const Navigation: React.FC<NavigationProps> = ({ onHomeClick }) => {
         </Button>
 
         {/* Center Title */}
-        <div className="text-lg font-semibold text-foreground">Irios A.I.
-        </div>
+        <div className="text-lg font-semibold text-foreground">Irios A.I.</div>
 
         {/* Profile Dropdown (click to open) */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              variant={isSettings || isMyEmails ? "secondary" : "ghost"}
+              variant={isSettings || isMyEmails || isAdminPage ? "secondary" : "ghost"}
               size="sm"
               className="flex items-center gap-2"
             >
@@ -73,6 +95,13 @@ const Navigation: React.FC<NavigationProps> = ({ onHomeClick }) => {
                 My Emails
               </Link>
             </DropdownMenuItem>
+            {isAdmin && (
+              <DropdownMenuItem asChild>
+                <Link to="/admin" className="w-full cursor-pointer">
+                  Admin
+                </Link>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

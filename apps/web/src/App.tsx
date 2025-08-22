@@ -11,6 +11,8 @@ import MyEmails from "./pages/MyEmails";
 import EmailEditor from "./pages/EmailEditor";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "@/components/ScrollToTop";
+// 👇 add this import
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,8 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/my-emails" element={<MyEmails />} />
               <Route path="/email-editor" element={<EmailEditor />} />
+              {/* 👇 new admin route */}
+              <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

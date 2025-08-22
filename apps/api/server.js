@@ -6,6 +6,8 @@ import brandRoutes from "./routes/brandRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import generateRoutes from "./routes/generateRoutes.js";
 import billingRoutes from "./routes/billingRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import { requireAdminUser } from "./middleware/requireAdminUser.js";
 import { stripeWebhook } from "./controllers/billingController.js";
 
 import { requireAuth } from "./middleware/requireAuth.js";
@@ -63,11 +65,15 @@ app.use("/api", billingRoutes);
 app.use("/api", creditsRoutes);
 app.use("/api", imagesRoutes);
 
+// ✅ Admin routes (role-based: requires logged-in user with profiles.is_admin = true)
+app.use("/api/admin", requireAuth, requireAdminUser, adminRoutes);
+
 // ---- Route list ----
 console.log("\n📡 Available Routes:");
 console.log("- POST /api/brand/check");
 console.log("- POST /api/products/scrape");
 console.log("- POST /api/generate   (protected)");
+console.log("- /api/admin/*         (protected + admin)");
 console.log("- POST /api/billing/checkout");
 console.log("- POST /api/billing/portal");
 console.log("- POST /webhooks/stripe (raw body)");

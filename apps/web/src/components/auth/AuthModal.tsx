@@ -12,11 +12,12 @@ const AuthModal: React.FC = () => {
   const [err, setErr] = useState<string | null>(null);
 
   const sendMagicLink = async () => {
-    if (!email.trim()) return;
+    const trimmed = email.trim();
+    if (!trimmed) return;
     setLoading(true);
     setErr(null);
     const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
+      email: trimmed,
       options: { emailRedirectTo: window.location.origin },
     });
     if (error) setErr(error.message);
@@ -39,6 +40,12 @@ const AuthModal: React.FC = () => {
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                sendMagicLink();
+              }
+            }}
             autoFocus
           />
         </div>
@@ -47,13 +54,13 @@ const AuthModal: React.FC = () => {
         {sent && <p className="text-sm text-green-600">Magic link sent. Check your inbox.</p>}
 
         <GradientButton
+          variant="solid"
           onClick={sendMagicLink}
           disabled={loading || !email.trim()}
-          className="w-full !bg-primary !text-primary-foreground hover:!bg-primary/90 disabled:opacity-60"
+          className="w-full"
         >
           {loading ? "Sending…" : "Send magic link"}
         </GradientButton>
-        
       </CardContent>
     </Card>
   );
