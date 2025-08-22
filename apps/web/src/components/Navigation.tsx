@@ -56,7 +56,7 @@ const Navigation: React.FC<NavigationProps> = ({ onHomeClick }) => {
               className="flex items-center gap-2"
             >
               <User className="h-4 w-4" />
-              Profile
+              Dashboard
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -65,7 +65,7 @@ const Navigation: React.FC<NavigationProps> = ({ onHomeClick }) => {
           >
             <DropdownMenuItem asChild>
               <Link to="/settings" className="w-full cursor-pointer">
-                Profile Settings
+                User Dashboard
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>

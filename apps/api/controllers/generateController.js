@@ -3,6 +3,7 @@ import mjml2html from "mjml";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { storeUserImageFromUrl, storeUserImageFromDataUrl } from "./imagesController.js";
+import { supabase } from "../utils/supabaseClient.js";
 
 function normalizeDomain(input) {
   return (input || "")
@@ -36,6 +37,19 @@ function resolveEffectiveColors(brandJson) {
   const resolved = {};
   for (const k of COLOR_KEYS) resolved[k] = top[k] ?? under[k] ?? null;
   return { top, under, resolved };
+}
+
+// Normalize URL minimally for equality checks (strip trailing slashes, ignore trivial query empties)
+function normalizeUrl(u = "") {
+  try {
+    const url = new URL(String(u).trim());
+    // Keep host + pathname + search; don’t drop query because Supabase public URLs may include versioning
+    // But normalize trailing slash on pathname
+    url.pathname = url.pathname.replace(/\/+$/, "");
+    return url.toString();
+  } catch {
+    return String(u || "").trim().replace(/\/+$/, "");
+  }
 }
 
 // Pull a likely hero image URL from several places (MJML and compiled HTML)
@@ -148,14 +162,13 @@ export async function generateEmails(req, res) {
     // Forward saved image to generator -> it will inject and skip generating
     if (typeof savedHeroImageUrl === "string" && /^https?:\/\//i.test(savedHeroImageUrl.trim())) {
       brandJson.savedHeroImageUrl = savedHeroImageUrl.trim();
-      // When reusing, we don't need a new custom hero
       brandJson.brandData.customHeroImage = false;
     }
 
     // propagate colors to top-level for back-compat
     for (const key of COLOR_KEYS) if (brandJson.brandData[key]) brandJson[key] = brandJson.brandData[key];
 
-    const { top, under, resolved } = resolveEffectiveColors(brandJson);
+    const { resolved } = resolveEffectiveColors(brandJson);
     brandJson.theme = { ...(brandJson.theme || {}), primaryColor: brandJson.primary_color, linkColor: brandJson.link_color };
     brandJson.styles = { ...(brandJson.styles || {}), primary_color: brandJson.primary_color, link_color: brandJson.link_color };
     brandJson.debug = { ...(brandJson.debug || {}), effectiveColors: resolved, designAesthetic: brandJson.designAesthetic, emailType: brandJson.emailType };
@@ -199,13 +212,15 @@ export async function generateEmails(req, res) {
       return { ...email, html };
     });
 
-    // ===== Persist the image actually used =====
+    // ===== Persist the image actually used (with de-dupe by URL) =====
     let savedHero = null;
     try {
       const uid = req.user?.id; // requireAuth sets this
       const mjml = htmlEmails?.[0]?.content || generated?.emails?.[0]?.content || "";
       const html = htmlEmails?.[0]?.html || "";
-      const urlToStore = extractHeroUrl({ generated, headerHero, mjml, html });
+      const extractedUrl = extractHeroUrl({ generated, headerHero, mjml, html });
+      const urlToStore = extractedUrl ? normalizeUrl(extractedUrl) : null;
+      const selectedUrl = savedHeroImageUrl ? normalizeUrl(savedHeroImageUrl) : null;
 
       console.log("[generateController] hero capture:", {
         hasUser: !!uid,
@@ -213,20 +228,85 @@ export async function generateEmails(req, res) {
         headerHero,
         hadExplicit: !!generated?.heroImageUrlUsed,
         foundFrom: urlToStore ? "extracted" : "none",
+        selectedSaved: !!selectedUrl,
         urlPreview: urlToStore ? String(urlToStore).slice(0, 80) : null,
       });
 
+      // Only proceed if we have a user + domain + a URL to store
       if (uid && normalizedDomain && urlToStore) {
-        if (urlToStore.startsWith("data:")) {
-          savedHero = await storeUserImageFromDataUrl({ userId: uid, domain: normalizedDomain, dataUrl: urlToStore });
-        } else if (/^https?:\/\//i.test(urlToStore)) {
-          savedHero = await storeUserImageFromUrl({ userId: uid, domain: normalizedDomain, url: urlToStore });
+        // If user picked a saved image and it's the same link, just reuse existing DB row
+        if (selectedUrl && selectedUrl === urlToStore) {
+          const { data: existing } = await supabase
+            .from("user_images")
+            .select("id, public_url, path, created_at, width, height")
+            .eq("user_id", uid)
+            .eq("domain", normalizedDomain)
+            .eq("public_url", extractedUrl) // use original (non-normalized) match first
+            .maybeSingle();
+
+          if (existing) {
+            savedHero = existing;
+          } else {
+            // fallback: try normalized URL match
+            const { data: existing2 } = await supabase
+              .from("user_images")
+              .select("id, public_url, path, created_at, width, height")
+              .eq("user_id", uid)
+              .eq("domain", normalizedDomain)
+              .eq("public_url", urlToStore)
+              .maybeSingle();
+            if (existing2) savedHero = existing2;
+          }
+        }
+
+        // If not found above, try generic de-dupe by URL
+        if (!savedHero) {
+          const { data: existing } = await supabase
+            .from("user_images")
+            .select("id, public_url, path, created_at, width, height")
+            .eq("user_id", uid)
+            .eq("domain", normalizedDomain)
+            .eq("public_url", extractedUrl) // try exact first
+            .maybeSingle();
+
+          if (existing) {
+            savedHero = existing;
+          } else {
+            const { data: existing2 } = await supabase
+              .from("user_images")
+              .select("id, public_url, path, created_at, width, height")
+              .eq("user_id", uid)
+              .eq("domain", normalizedDomain)
+              .eq("public_url", urlToStore)
+              .maybeSingle();
+
+            if (existing2) {
+              savedHero = existing2;
+            }
+          }
+        }
+
+        // Still not found? Only then upload/save.
+        if (!savedHero) {
+          if (extractedUrl.startsWith("data:")) {
+            savedHero = await storeUserImageFromDataUrl({
+              userId: uid,
+              domain: normalizedDomain,
+              dataUrl: extractedUrl,
+            });
+          } else if (/^https?:\/\//i.test(extractedUrl)) {
+            savedHero = await storeUserImageFromUrl({
+              userId: uid,
+              domain: normalizedDomain,
+              url: extractedUrl,
+            });
+          }
         }
       }
     } catch (e) {
-      console.warn("Hero image save skipped:", e?.message || e);
+      console.warn("[generateController] Hero image save skipped:", e?.message || e);
     }
-    // ==========================================
+    // ================================================================
 
     console.log(`[generateController] Total request time: ${Date.now() - startTime} ms`);
     return res.json({
@@ -237,7 +317,7 @@ export async function generateEmails(req, res) {
       savedHeroImage: savedHero ? { id: savedHero.id, url: savedHero.public_url } : null,
       heroImageUrlUsed: generated?.heroImageUrlUsed || headerHero || null,
       usedImageSource: generated?.heroImageUrlUsed ? (savedHeroImageUrl ? "saved" : "generated") : null,
-      debug: { colorsSent: resolved },
+      debug: { colorsSent: resolveEffectiveColors(brandJson).resolved },
     });
   } catch (err) {
     console.error("Generate error:", err);

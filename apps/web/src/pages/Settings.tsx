@@ -385,7 +385,7 @@ const Settings: React.FC = () => {
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" type="email" value={emailField} disabled placeholder="you@example.com" />
                   </div>
-                  <Button onClick={handleSaveProfile}>Save Changes</Button>
+                  <Button variant="outline" onClick={handleSaveProfile}>Save Changes</Button>
                 </CardContent>
               </Card>
 
@@ -569,6 +569,7 @@ const Settings: React.FC = () => {
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={closeBrandModal}>Cancel</Button>
                 <GradientButton
+                  variant="solid"
                   onClick={saveBrandColors}
                   disabled={!isBrandValid}
                   className="!bg-primary !text-primary-foreground disabled:opacity-60"

@@ -75,7 +75,7 @@ const MyEmails: React.FC = () => {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navigation />
-        <div className="container mx-auto px-4 py-10">Loading…</div>
+        <div className="pt-16 container mx-auto px-4 py-10">Loading…</div>
       </div>
     );
   }
@@ -84,7 +84,7 @@ const MyEmails: React.FC = () => {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navigation />
-        <div className="container mx-auto px-4 py-10 space-y-4">
+        <div className="pt-16 container mx-auto px-4 py-10 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Sign in required</CardTitle>
@@ -104,7 +104,7 @@ const MyEmails: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navigation />
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-4xl">
+      <div className="pt-16 container mx-auto px-4 py-8 space-y-6 max-w-4xl">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">My Emails</h1>
