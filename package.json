@@ -13,11 +13,20 @@
     "build": "npm-run-all build:*",
     "build:web": "npm --workspace apps/web run build",
     "build:api": "npm --workspace apps/api run build",
-    "build:generator": "npm --workspace apps/generator run build"
+    "build:generator": "npm --workspace apps/generator run build",
+    "check:unused": "knip && unimported && depcheck",
+    "check:exports": "ts-prune",
+    "check:cycles": "madge --extensions ts,tsx,js,jsx --circular .",
+    "check:all": "npm run check:unused && npm run check:exports && npm run check:cycles"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
-    "npm-run-all": "^4.1.5"
+    "depcheck": "^1.4.7",
+    "knip": "^5.63.0",
+    "madge": "^8.0.0",
+    "npm-run-all": "^4.1.5",
+    "ts-prune": "^0.10.3",
+    "unimported": "^1.31.0"
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.8"
