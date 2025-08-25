@@ -21,6 +21,9 @@
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "mjml": "^4.15.3",
+    "mjml-cli": "^4.15.3",
+    "mjml-core": "^4.15.3",
+    "mjml-preset-core": "^4.15.3",
     "node-fetch": "^3.3.2",
     "stripe": "^18.4.0"
   },
